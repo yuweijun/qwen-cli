@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to run the AskQuery Spring Boot application
+# Script to run the AskQuery Java application
 # Logs output to the logs directory in the project root
 
 # Set the project root directory
@@ -30,8 +30,8 @@ if [ ! -f "$JAR_FILE" ]; then
     exit 1
 fi
 
-# Run the Spring Boot application with logging
-java -jar "$JAR_FILE" 2>&1 | tee "$LOG_FILE"
+# Run the Java application with logging
+java -cp "$JAR_FILE" com.example.askquery.Main 2>&1 | tee "$LOG_FILE"
 
 # Print completion message
 echo "----------------------------------------"

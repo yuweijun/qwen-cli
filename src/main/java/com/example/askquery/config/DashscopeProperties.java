@@ -1,10 +1,5 @@
 package com.example.askquery.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
-@Component
-@ConfigurationProperties(prefix = "dashscope")
 public class DashscopeProperties {
     private Api api = new Api();
     private String model = "qwen-plus";

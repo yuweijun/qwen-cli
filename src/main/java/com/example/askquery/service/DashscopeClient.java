@@ -7,13 +7,11 @@ import com.alibaba.dashscope.common.Message;
 import com.example.askquery.config.DashscopeProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Component
 public class DashscopeClient {
 
     private final DashscopeProperties props;

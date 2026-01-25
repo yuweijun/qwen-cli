@@ -9,7 +9,8 @@ import org.jline.reader.impl.LineReaderImpl;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,8 +24,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Service
 public class InteractiveService {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(InteractiveService.class);
 
     private final AppProperties appProps;
     private final DashscopeProperties dashProps;
@@ -63,7 +65,10 @@ public class InteractiveService {
                 System.getProperty("user.home") + File.separator + ".ask_query_history");
         ensureHistoryFile(histPath);
 
-        Terminal terminal = TerminalBuilder.builder().system(true).build();
+        Terminal terminal = TerminalBuilder.builder()
+                .system(true)
+                .build();
+
         LineReader reader = LineReaderBuilder.builder()
                 .terminal(terminal)
                 .parser(new DefaultParser())
@@ -172,44 +177,57 @@ public class InteractiveService {
         terminal.flush();
 
         boolean running = true;
-        while (running) {
-            showEntryAt(terminal, idx);
+        try {
+            while (running) {
+                showEntryAt(terminal, idx);
 
-            int ch;
-            try {
-                ch = terminal.reader().read();
-            } catch (IOException | IllegalStateException e) {
-                break;
-            }
-
-            if (ch == 13 || ch == 10) {  // Enter key
-                running = false;
-                break;
-            } else if (ch == 'q' || ch == 'Q') {  // q key to quit
-                running = false;
-                break;
-            } else if (ch == 27) {  // ESC character, start of arrow key sequence
+                int ch;
                 try {
-                    int c2 = terminal.reader().read();
-                    if (c2 == 91) {  // '[' character
-                        int c3 = terminal.reader().read();
-                        synchronized (entries) {
-                            if (c3 == 68) {  // Left arrow key
-                                if (idx > 0) idx--;
-                            } else if (c3 == 67) {  // Right arrow key
-                                if (idx < entries.size() - 1) idx++;
-                            } else if (c3 == 65) {  // Up arrow key
-                                if (idx > 0) idx--;
-                            } else if (c3 == 66) {  // Down arrow key
-                                if (idx < entries.size() - 1) idx++;
+                    ch = terminal.reader().read();
+                } catch (IOException | IllegalStateException e) {
+                    break;
+                }
+                LOGGER.info("Detected {} character for arrow key sequence", ch);
+
+                if (ch == 13 || ch == 10) {  // Enter key
+                    running = false;
+                    break;
+                } else if (ch == 'q' || ch == 'Q') {  // q key to quit
+                    running = false;
+                    break;
+                } else if (ch == 27) {  // ESC character, start of arrow key sequence
+                    try {
+                        LOGGER.info("Detected ESC character for arrow key sequence");
+                        int c2 = terminal.reader().read();
+                        if (c2 == 91) {  // '[' character
+                            LOGGER.info("Detected '[' character for arrow key sequence");
+                            int c3 = terminal.reader().read();
+                            synchronized (entries) {
+                                if (c3 == 68) {  // Left arrow key
+                                    LOGGER.info("Left arrow key pressed");
+                                    if (idx > 0) idx--;
+                                } else if (c3 == 67) {  // Right arrow key
+                                    if (idx < entries.size() - 1) idx++;
+                                } else if (c3 == 65) {  // Up arrow key
+                                    LOGGER.info("Up arrow key pressed");
+                                    if (idx > 0) idx--;
+                                } else if (c3 == 66) {  // Down arrow key
+                                    if (idx < entries.size() - 1) idx++;
+                                }
                             }
                         }
+                    } catch (IOException ignored) {
                     }
-                } catch (IOException ignored) {
+                } else if (ch == 3) {  // Ctrl+C to force quit
+                    running = false;
+                    break;
                 }
-            } else if (ch == 3) {  // Ctrl+C to force quit
-                running = false;
-                break;
+            }
+        } finally {
+            // Restore cooked mode
+            try {
+                terminal.close();
+            } catch (Exception ignored) {
             }
         }
 

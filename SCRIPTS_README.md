@@ -60,3 +60,15 @@ Make sure to build the project before running the scripts:
 ```
 
 The application JAR file is located at `build/libs/qwen-project-0.1.0.jar`.
+
+## Environment Variables
+
+Before running the application, make sure to set the required environment variable:
+```bash
+export DASHSCOPE_API_KEY=your_api_key_here
+```
+
+Or you can pass the API key as a system property:
+```bash
+java -Ddashscope.api.key=your_api_key -cp build/libs/qwen-project-0.1.0.jar com.example.askquery.Main
+```

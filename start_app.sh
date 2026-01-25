@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to start the AskQuery Spring Boot application in the background
+# Script to start the AskQuery Java application in the background
 # Logs output to the logs directory in the project root
 
 # Set the project root directory
@@ -25,7 +25,7 @@ if [ ! -f "$JAR_FILE" ]; then
 fi
 
 # Start the application in the background
-nohup java -jar "$JAR_FILE" > "$LOG_FILE" 2>&1 &
+nohup java -cp "$JAR_FILE" com.example.askquery.Main > "$LOG_FILE" 2>&1 &
 
 # Save the process ID
 APP_PID=$!
@@ -46,7 +46,7 @@ PROJECT_ROOT="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
 JAR_FILE="\$PROJECT_ROOT/build/libs/qwen-project-0.1.0.jar"
 
 # Find and kill the Java process running our application
-PIDS=\$(ps aux | grep "java.*\$(basename "\$JAR_FILE")" | grep -v grep | awk '{print \$2}')
+PIDS=\$(ps aux | grep "java.*-cp.*\$(basename "\$JAR_FILE")" | grep -v grep | awk '{print \$2}')
 
 if [ -z "\$PIDS" ]; then
     echo "No running AskQuery application found"

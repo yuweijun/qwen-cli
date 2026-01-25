@@ -1,7 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.1.3'
-    id 'io.spring.dependency-management' version '1.1.0'
+    id 'application'  // Add application plugin for main class
 }
 
 group = 'com.example'
@@ -14,19 +13,31 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'com.alibaba:dashscope-sdk-java:+'
     implementation 'org.jline:jline:3.23.0' // interactive console + history
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation 'org.mockito:mockito-core:5.1.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-configurations.all {
-    exclude group: 'org.slf4j', module: 'slf4j-simple'
+// Define the main class for the application
+application {
+    mainClass = 'com.example.askquery.Main'
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes(
+            'Main-Class': 'com.example.askquery.Main'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }

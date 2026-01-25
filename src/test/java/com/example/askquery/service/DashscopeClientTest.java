@@ -2,32 +2,21 @@ package com.example.askquery.service;
 
 import com.example.askquery.config.DashscopeProperties;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class DashscopeClientTest {
-
-    @Mock
-    private DashscopeProperties mockProps;
-
-    private DashscopeClient dashscopeClient;
-
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        dashscopeClient = new DashscopeClient(mockProps);
-    }
 
     @Test
     public void testSendMessagesNotNull() {
         // Given
+        DashscopeProperties props = new DashscopeProperties();
+        props.getApi().setKey(System.getenv("DASHSCOPE_API_KEY")); // Use actual properties
+        DashscopeClient dashscopeClient = new DashscopeClient(props);
+
         List<Map<String, String>> messages = List.of(
             Map.of("role", "user", "content", "Hello")
         );
@@ -43,6 +32,10 @@ public class DashscopeClientTest {
     @Test
     public void testExtractTextFromNull() {
         // Given
+        DashscopeProperties props = new DashscopeProperties();
+        props.getApi().setKey(System.getenv("DASHSCOPE_API_KEY")); // Use actual properties
+        DashscopeClient dashscopeClient = new DashscopeClient(props);
+
         JsonNode nullNode = null;
 
         // When

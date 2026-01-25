@@ -65,7 +65,7 @@ Make sure to build the project before running the scripts:
 ./gradlew build
 ```
 
-The application JAR file is located at `build/libs/qwen-project-0.1.0.jar`.
+The application JAR file is located at `build/libs/qwen_cli-0.1.0.jar`.
 
 ## Environment Variables
 
@@ -76,5 +76,5 @@ export DASHSCOPE_API_KEY=your_api_key_here
 
 Or you can pass the API key as a system property:
 ```bash
-java -Ddashscope.api.key=your_api_key -cp build/libs/qwen-project-0.1.0.jar com.example.askquery.Main
+java -Ddashscope.api.key=your_api_key -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
 ```

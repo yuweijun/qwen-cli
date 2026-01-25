@@ -18,7 +18,7 @@ Run:
    ./gradlew run
    or
    ./gradlew build
-   java -cp build/libs/qwen-project-0.1.0.jar com.example.askquery.Main
+   java -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
 
 ## Scripts
 

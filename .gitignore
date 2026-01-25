@@ -18,6 +18,7 @@ logs/
 
 # Gradle wrapper (if you prefer to manage it differently)
 gradle/
+questions
 
 # OS
 Thumbs.db

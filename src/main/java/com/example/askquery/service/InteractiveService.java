@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -198,6 +200,9 @@ public class InteractiveService {
             }
             entry.setAnswer(text);
             System.out.println("[回答] " + text);
+
+            // Save question and response to file
+            saveQuestionToFile(query, text);
         } else {
             executor.submit(() -> {
                 List<Map<String, String>> msgs = buildMessages(query);
@@ -212,6 +217,9 @@ public class InteractiveService {
                 entry.setAnswer(text);
                 synchronized (System.out) {
                     System.out.println("\n[回答] " + text);
+
+                    // Save question and response to file
+                    saveQuestionToFile(query, text);
                 }
             });
         }
@@ -333,6 +341,36 @@ public class InteractiveService {
             if (last != null && last.equals(line)) return;
             Files.write(p, Collections.singletonList(line), StandardOpenOption.APPEND);
         } catch (IOException ignored) {
+        }
+    }
+
+    private void saveQuestionToFile(String question, String response) {
+        try {
+            // Get current date in yyyy-MM-dd format
+            String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+            // Extract first 15 characters of the question and sanitize for filename
+            String first15Chars = question.length() > 15 ? question.substring(0, 15) : question;
+            String sanitized = first15Chars.replaceAll("[^\\w]", "_");
+
+            // Create the filename
+            String fileName = date + "_" + sanitized + ".md";
+
+            // Create the content with question and response
+            String content = "# " + question + "\n\n" + response + "\n";
+
+            // Write to file in questions directory
+            Path questionsDir = Paths.get("questions");
+            if (!Files.exists(questionsDir)) {
+                Files.createDirectories(questionsDir);
+            }
+
+            Path filePath = questionsDir.resolve(fileName);
+            Files.write(filePath, content.getBytes());
+
+            System.out.println("Question saved to " + filePath);
+        } catch (IOException e) {
+            System.err.println("Error saving question to file: " + e.getMessage());
         }
     }
 }

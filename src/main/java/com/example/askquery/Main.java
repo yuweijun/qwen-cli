@@ -38,7 +38,7 @@ public class Main {
         
         // Load from system properties or use defaults
         String historyFile = System.getProperty("app.historyFile", 
-            System.getProperty("user.home") + ".qwen_cli_history");
+            System.getProperty("user.home") + "/.qwen_cli_history");
         props.setHistoryFile(historyFile);
         
         String contextLengthStr = System.getProperty("app.contextLength", "6");

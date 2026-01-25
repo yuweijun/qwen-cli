@@ -121,7 +121,8 @@ public class InteractiveService {
             submitAndMaybeWait(initialQuery, histPath, reader, exits);
         }
 
-        String prompt = "请输入你的问题（或输入 exit/quit 退出；h 查看历史记录）： ";
+        String prompt = "\n========================================================" +
+                        "\n请输入你的问题（或输入 exit/quit 退出；h 查看历史记录）： ";
         while (true) {
             String line;
             try {
@@ -134,7 +135,10 @@ public class InteractiveService {
                 break;
             }
 
-            if (line == null) break;
+            if (line == null) {
+                break;
+            }
+
             String s = line.trim();
             if (s.isEmpty()) continue;
 
@@ -149,6 +153,7 @@ public class InteractiveService {
             }
 
             // Add to JLine history as well as file
+            System.out.println("========================================================\n");
             reader.getHistory().add(s);
             appendHistoryUnique(histPath, s);
             submitAndMaybeWait(s, histPath, reader, exits);
@@ -161,7 +166,7 @@ public class InteractiveService {
 
         try {
             if (history instanceof DefaultHistory) {
-                ((DefaultHistory) history).save();
+                history.save();
             }
         } catch (Exception ignored) {
         }
@@ -244,14 +249,20 @@ public class InteractiveService {
 
 
     private void showHistory(Terminal terminal) {
+        // Clear screen first to create a clean view
+        for (int i = 0; i < 50; i++) {
+            terminal.writer().println();  // Print multiple newlines to clear screen
+        }
+        terminal.flush();
+
         synchronized (entries) {
             if (entries.isEmpty()) {
-                terminal.writer().println("\n没有历史记录。");
+                terminal.writer().println("没有历史记录。");
                 terminal.flush();
                 return;
             }
 
-            terminal.writer().println("\n========== 历史记录 ==========");
+            terminal.writer().println("========== 历史记录 ==========");
             for (int i = 0; i < entries.size(); i++) {
                 Entry entry = entries.get(i);
                 terminal.writer().println("[" + (i + 1) + "] 问题: " + entry.question);
@@ -294,8 +305,8 @@ public class InteractiveService {
             terminal.setAttributes(originalAttrs);
         }
 
-        // Clear screen
-        terminal.writer().println("\n".repeat(30));
+        // Clear screen when exiting to return to clean prompt
+        terminal.writer().println("\n".repeat(50));
         terminal.flush();
     }
 

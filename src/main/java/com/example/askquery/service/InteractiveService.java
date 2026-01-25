@@ -351,7 +351,7 @@ public class InteractiveService {
 
             // Extract first 15 characters of the question and sanitize for filename
             String first15Chars = question.length() > 15 ? question.substring(0, 15) : question;
-            String sanitized = first15Chars.replaceAll("[^\\w]", "_");
+            String sanitized = first15Chars.replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "_");
 
             // Create the filename
             String fileName = date + "_" + sanitized + ".md";

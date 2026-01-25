@@ -8,7 +8,7 @@ Features:
 - Exit commands (`exit`, `quit`)
 - Context preservation (keep last N rounds)
 - Parallel requests (async) with configurable concurrency
-- Navigation through conversation history with `:nav`, `:view`, or `navi` commands and arrow keys
+- View conversation history with `:h` command (also supports `:history`)
 - Calls a configurable API endpoint via Dashscope SDK (updated to use official SDK)
 
 Run:
@@ -34,6 +34,5 @@ See SCRIPTS_README.md for detailed instructions on using the scripts.
 
 Notes:
 - The code now uses the official Dashscope Java SDK for API calls
-- Navigation through conversation history is available using `:nav`, `:view`, or `navi` commands followed by left/right arrow keys
 - The application logs output to the `logs/` directory when using the provided scripts
 - Configuration can be set via system properties (e.g., -Ddashscope.api.key=your_key)

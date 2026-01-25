@@ -2,6 +2,12 @@
 
 This project includes several scripts to help you run and manage the application:
 
+## Commands
+
+### Interactive Commands
+- `:h` - View all conversation history (questions and responses) (also supports `:history`)
+- `exit` or `quit` - Exit the application
+
 ## Scripts
 
 ### `run_app.sh`

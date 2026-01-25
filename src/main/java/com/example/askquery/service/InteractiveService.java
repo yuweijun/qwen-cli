@@ -9,8 +9,6 @@ import org.jline.reader.impl.LineReaderImpl;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class InteractiveService {
-
-    private final Logger LOGGER = LoggerFactory.getLogger(InteractiveService.class);
 
     private final AppProperties appProps;
     private final DashscopeProperties dashProps;
@@ -69,15 +65,24 @@ public class InteractiveService {
                 .system(true)
                 .build();
 
+        // Create a new history instance to avoid format issues
+        DefaultHistory history = new DefaultHistory();
+
         LineReader reader = LineReaderBuilder.builder()
                 .terminal(terminal)
                 .parser(new DefaultParser())
                 .variable(LineReader.HISTORY_FILE, Paths.get(histPath))
+                .history(history)
                 .build();
 
-        History history = reader.getHistory();
-        if (history instanceof DefaultHistory) {
-            ((DefaultHistory) history).attach(reader);
+        // Attempt to load history, but handle errors gracefully
+        try {
+            history.attach(reader);
+            history.load();
+        } catch (Exception e) {
+            // If history loading fails, continue without history
+            System.err.println("Warning: Could not load history file: " + e.getMessage());
+            System.err.println("History functionality may be limited.");
         }
 
         List<String> exits = Arrays.stream(appProps.getExitCommands().split(","))
@@ -109,7 +114,7 @@ public class InteractiveService {
             submitAndMaybeWait(initialQuery, histPath, reader, exits);
         }
 
-        String prompt = "请输入你的问题（或输入 exit/quit 退出；:nav/:view/navi 进入浏览模式）： ";
+        String prompt = "请输入你的问题（或输入 exit/quit 退出；:h 查看历史记录）： ";
         while (true) {
             String line;
             try {
@@ -126,8 +131,8 @@ public class InteractiveService {
             String s = line.trim();
             if (s.isEmpty()) continue;
 
-            if (s.equalsIgnoreCase(":nav") || s.equalsIgnoreCase(":view") || s.equalsIgnoreCase("navi")) {
-                enterNavigationMode(reader, terminal);
+            if (s.equalsIgnoreCase(":h") || s.equalsIgnoreCase(":history")) {
+                showHistory(terminal);
                 continue;
             }
 
@@ -155,106 +160,6 @@ public class InteractiveService {
         }
     }
 
-    private void enterNavigationMode(LineReader reader, Terminal terminal) {
-        synchronized (entries) {
-            if (entries.isEmpty()) {
-                terminal.writer().println("\n没有可浏览的记录（还没有问答完成）。按回车继续。");
-                terminal.flush();
-                try {
-                    reader.readLine();
-                } catch (Exception ignored) {
-                }
-                return;
-            }
-        }
-
-        int idx;
-        synchronized (entries) {
-            idx = entries.size() - 1;
-        }
-
-        terminal.writer().println("\n进入浏览模式：使用 ← / → / ↑ / ↓ (Left/Right/Up/Down) 浏览历史记录，按 Enter 或 q 退出浏览模式。");
-        terminal.flush();
-
-        boolean running = true;
-        while (running) {
-            showEntryAt(terminal, idx);
-
-            int ch;
-            try {
-                ch = terminal.reader().read();
-            } catch (IOException | IllegalStateException e) {
-                break;
-            }
-            LOGGER.info("Detected {} character for arrow key sequence", ch);
-
-            if (ch == 13 || ch == 10) {  // Enter key
-                running = false;
-                break;
-            } else if (ch == 'q' || ch == 'Q') {  // q key to quit
-                running = false;
-                break;
-            } else if (ch == 27) {  // ESC character, start of arrow key sequence
-                try {
-                    LOGGER.info("Detected ESC character for arrow key sequence");
-                    int c2 = terminal.reader().read();
-                    if (c2 == 91) {  // '[' character
-                        LOGGER.info("Detected '[' character for arrow key sequence");
-                        int c3 = terminal.reader().read();
-                        synchronized (entries) {
-                            if (c3 == 68) {  // Left arrow key
-                                LOGGER.info("Left arrow key pressed");
-                                if (idx > 0) idx--;
-                            } else if (c3 == 67) {  // Right arrow key
-                                if (idx < entries.size() - 1) idx++;
-                            } else if (c3 == 65) {  // Up arrow key
-                                LOGGER.info("Up arrow key pressed");
-                                if (idx > 0) idx--;
-                            } else if (c3 == 66) {  // Down arrow key
-                                if (idx < entries.size() - 1) idx++;
-                            }
-                        }
-                    }
-                } catch (IOException ignored) {
-                }
-            } else if (ch == 3) {  // Ctrl+C to force quit
-                running = false;
-                break;
-            }
-        }
-
-        terminal.writer().println("退出浏览模式，返回提示。");
-        terminal.flush();
-    }
-
-    private void showEntryAt(Terminal terminal, int idx) {
-        terminal.writer().println("\n------------------------------");
-        int totalEntries;
-        synchronized (entries) {
-            totalEntries = entries.size();
-        }
-        Entry e;
-        synchronized (entries) {
-            if (idx < 0 || idx >= entries.size()) {
-                terminal.writer().println("[空白索引]");
-                terminal.flush();
-                return;
-            }
-            e = entries.get(idx);
-        }
-        terminal.writer().println("条目 " + (idx + 1) + "/" + totalEntries + " | 索引: " + idx + "  问题: " + e.question);
-        terminal.writer().println("答案: ");
-        if (e.answer == null) {
-            terminal.writer().println("  (尚未返回结果，可能正在处理中)");
-        } else {
-            String[] lines = e.answer.split("\\r?\\n");
-            for (String line : lines) {
-                terminal.writer().println("  " + line);
-            }
-        }
-        terminal.writer().println("------------------------------");
-        terminal.flush();
-    }
 
     private void submitAndMaybeWait(String query, String histPath, LineReader reader, List<String> exits) {
         synchronized (convo) {
@@ -328,6 +233,49 @@ public class InteractiveService {
             }
         } catch (Exception ignored) {
         }
+    }
+
+    private void showHistory(Terminal terminal) {
+        synchronized (entries) {
+            if (entries.isEmpty()) {
+                terminal.writer().println("\n没有历史记录。");
+                terminal.flush();
+                return;
+            }
+
+            terminal.writer().println("\n========== 历史记录 ==========");
+            for (int i = 0; i < entries.size(); i++) {
+                Entry entry = entries.get(i);
+                terminal.writer().println("[" + (i + 1) + "] 问题: " + entry.question);
+                if (entry.answer != null) {
+                    terminal.writer().println("    回答: " + entry.answer);
+                } else {
+                    terminal.writer().println("    回答: (等待中...)");
+                }
+                terminal.writer().println("---------------------------");
+            }
+            terminal.writer().println("按 'q' 键退出历史记录视图...");
+            terminal.flush();
+        }
+
+        // Wait for 'q' key to exit - read directly from terminal to avoid Enter requirement
+        try {
+            int ch;
+            while (true) {
+                ch = terminal.reader().read();
+                if (ch == 'q' || ch == 'Q') {
+                    break;
+                }
+            }
+        } catch (IOException | IllegalStateException e) {
+            // Ignore
+        }
+
+        // Clear the screen by printing new lines
+        for (int i = 0; i < 30; i++) {
+            terminal.writer().println();
+        }
+        terminal.flush();
     }
 
     private void appendHistoryUnique(String historyFile, String line) {

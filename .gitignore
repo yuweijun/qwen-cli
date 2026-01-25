@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+
+# IDE
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Runtime
+.qwen_query_history
+
+# Gradle wrapper (if you prefer to manage it differently)
+gradle/
+
+# OS
+Thumbs.db
+ehthumbs.db
+Icon?
+.DS_Store

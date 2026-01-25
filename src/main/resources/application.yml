@@ -1,0 +1,13 @@
+# Default config - can be overridden by environment variables or CLI args
+dashscope:
+  api:
+    key: "" # or set DASHSCOPE_API_KEY env var
+  model: "qwen-plus"
+
+app:
+  history-file: "${user.home}/IdeaProjects/qwen-project/.qwen_query_history"
+  context-length: 6
+  parallel: false
+  concurrency: 2
+  exit-commands: "exit,quit"
+  system-message: "You are a helpful assistant."

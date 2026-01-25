@@ -144,7 +144,7 @@ public class InteractiveService {
             String s = line.trim();
             if (s.isEmpty()) continue;
 
-            if (s.equalsIgnoreCase("h")) {
+            if (s.equalsIgnoreCase("h") || s.equalsIgnoreCase(":h") || s.equalsIgnoreCase(":history")) {
                 showHistory(terminal);
                 continue;
             }
@@ -167,9 +167,7 @@ public class InteractiveService {
         }
 
         try {
-            if (history instanceof DefaultHistory) {
-                history.save();
-            }
+            history.save();
         } catch (Exception ignored) {
         }
     }
@@ -349,9 +347,9 @@ public class InteractiveService {
             // Get current date in yyyy-MM-dd format
             String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-            // Extract first 15 characters of the question and sanitize for filename
-            String first15Chars = question.length() > 15 ? question.substring(0, 15) : question;
-            String sanitized = first15Chars.replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "_");
+            // Extract first 35 characters of the question and sanitize for filename
+            String first35Chars = question.length() > 35 ? question.substring(0, 35) : question;
+            String sanitized = first35Chars.replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "_");
 
             // Create the filename
             String fileName = date + "_" + sanitized + ".md";

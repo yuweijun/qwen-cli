@@ -10,7 +10,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Set the logs directory
 LOGS_DIR="$PROJECT_ROOT/logs"
-JAR_FILE="$PROJECT_ROOT/build/libs/qwen_cli-0.1.0.jar"
+JAR_FILE="$PROJECT_ROOT/build/libs/qwen-cli-0.1.0.jar"
 
 # Create logs directory if it doesn't exist
 mkdir -p "$LOGS_DIR"

@@ -32,9 +32,16 @@ if [ ! -f "$JAR_FILE" ]; then
     exit 1
 fi
 
-# Run the Java application in interactive mode with logging
-# Using 'script' command to capture output while preserving terminal interactivity
-script -q "$LOG_FILE" -c "java -cp '$JAR_FILE' com.example.askquery.Main"
+# Run the Java application in interactive mode
+# For full interactivity (arrow keys, etc.), run directly in terminal
+# To still provide some logging, we'll just record that a session started
+echo "=== Session started at $(date) ===" >> "$LOG_FILE" 2>/dev/null
+
+# Run the Java application directly for full interactivity
+java -cp "$JAR_FILE" com.example.askquery.Main
+
+# Record session end
+echo "=== Session ended at $(date) ===" >> "$LOG_FILE" 2>/dev/null
 
 # Print completion message
 echo "----------------------------------------"

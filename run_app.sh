@@ -31,5 +31,10 @@ if [ ! -f "$JAR_FILE" ]; then
 fi
 
 # Run the Java application with logging
-java -cp "$JAR_FILE" com.example.askquery.Main
+java -cp "$JAR_FILE" com.example.askquery.Main 2>&1 | tee "$LOG_FILE"
+
+# Print completion message
+echo "----------------------------------------"
+echo "Application stopped at $(date)"
+echo "Check logs in: $LOG_FILE"
 

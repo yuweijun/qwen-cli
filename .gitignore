@@ -14,7 +14,7 @@ logs/
 *.log
 
 # Runtime
-.qwen_query_history
+.qwen_cli_history
 
 # Gradle wrapper (if you prefer to manage it differently)
 gradle/

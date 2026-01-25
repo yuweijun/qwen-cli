@@ -38,7 +38,7 @@ public class Main {
         
         // Load from system properties or use defaults
         String historyFile = System.getProperty("app.historyFile", 
-            System.getProperty("user.home") + "/IdeaProjects/qwen-project/.qwen_query_history");
+            System.getProperty("user.home") + ".qwen_cli_history");
         props.setHistoryFile(historyFile);
         
         String contextLengthStr = System.getProperty("app.contextLength", "6");
@@ -58,7 +58,7 @@ public class Main {
             props.setConcurrency(2);
         }
         
-        String exitCommands = System.getProperty("app.exitCommands", "exit,quit");
+        String exitCommands = System.getProperty("app.exitCommands", "exit,quit,q");
         props.setExitCommands(exitCommands);
         
         String systemMessage = System.getProperty("app.systemMessage", "You are a helpful assistant.");

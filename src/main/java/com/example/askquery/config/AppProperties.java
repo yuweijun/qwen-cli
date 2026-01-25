@@ -5,7 +5,7 @@ public class AppProperties {
     private int contextLength = 6;
     private boolean parallel = false;
     private int concurrency = 2;
-    private String exitCommands = "exit,quit";
+    private String exitCommands = "exit,quit,q";
     private String systemMessage = "You are a helpful assistant.";
 
     public String getHistoryFile() { return historyFile; }

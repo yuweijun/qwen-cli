@@ -4,7 +4,7 @@ Java + Gradle implementation of the interactive ask_query client.
 
 Features:
 - Interactive CLI with history and arrow-keys (via JLine)
-- Persistent history file (~/.qwen_query_history by default)
+- Persistent history file (~/.qwen_cli_history by default)
 - Exit commands (`exit`, `quit`)
 - Context preservation (keep last N rounds)
 - Parallel requests (async) with configurable concurrency

@@ -21,8 +21,8 @@ LOG_FILE="$LOGS_DIR/app_$TIMESTAMP.log"
 
 # Print startup information
 echo "Starting AskQuery Application in interactive mode..."
-echo "Log file: $LOG_FILE (logging starts after exit)"
-echo "JAR file: $JAR_FILE"
+# echo "Log file: $LOG_FILE (logging starts after exit)"
+# echo "JAR file: $JAR_FILE"
 echo "----------------------------------------"
 
 # Check if JAR file exists
@@ -46,5 +46,5 @@ echo "=== Session ended at $(date) ===" >> "$LOG_FILE" 2>/dev/null
 # Print completion message
 echo "----------------------------------------"
 echo "Application stopped at $(date)"
-echo "Check logs in: $LOG_FILE"
+# echo "Check logs in: $LOG_FILE"
 

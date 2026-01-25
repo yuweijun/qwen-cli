@@ -47,8 +47,15 @@ public class InteractiveService {
     private static class Entry {
         final String question;
         String answer;
-        Entry(String q) { this.question = q; this.answer = null; }
-        void setAnswer(String a) { this.answer = a; }
+
+        Entry(String q) {
+            this.question = q;
+            this.answer = null;
+        }
+
+        void setAnswer(String a) {
+            this.answer = a;
+        }
     }
 
     public void run(String initialQuery) throws Exception {
@@ -79,14 +86,21 @@ public class InteractiveService {
                 if (reader instanceof LineReaderImpl) {
                     ((LineReaderImpl) reader).getHistory().save();
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             if (executor != null) {
                 executor.shutdown();
-                try { executor.awaitTermination(5, TimeUnit.SECONDS); } catch (InterruptedException ignored) {}
+                try {
+                    executor.awaitTermination(5, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
             }
         }));
 
         if (initialQuery != null && !initialQuery.isBlank()) {
+            // Add to JLine history as well as file
+            reader.getHistory().add(initialQuery);
+            appendHistoryUnique(histPath, initialQuery);
             submitAndMaybeWait(initialQuery, histPath, reader, exits);
         }
 
@@ -117,6 +131,8 @@ public class InteractiveService {
                 break;
             }
 
+            // Add to JLine history as well as file
+            reader.getHistory().add(s);
             appendHistoryUnique(histPath, s);
             submitAndMaybeWait(s, histPath, reader, exits);
         }
@@ -130,7 +146,8 @@ public class InteractiveService {
             if (history instanceof DefaultHistory) {
                 ((DefaultHistory) history).save();
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private void enterNavigationMode(LineReader reader, Terminal terminal) {
@@ -140,7 +157,8 @@ public class InteractiveService {
                 terminal.flush();
                 try {
                     reader.readLine();
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
                 return;
             }
         }
@@ -150,14 +168,13 @@ public class InteractiveService {
             idx = entries.size() - 1;
         }
 
-        terminal.writer().println("\n进入浏览模式：使用 ← / → (Left/Right) 浏览历史记录，按 Enter 或 q 退出浏览模式。");
+        terminal.writer().println("\n进入浏览模式：使用 ← / → / ↑ / ↓ (Left/Right/Up/Down) 浏览历史记录，按 Enter 或 q 退出浏览模式。");
         terminal.flush();
 
         boolean running = true;
         while (running) {
             showEntryAt(terminal, idx);
 
-            // Read a character
             int ch;
             try {
                 ch = terminal.reader().read();
@@ -173,23 +190,22 @@ public class InteractiveService {
                 break;
             } else if (ch == 27) {  // ESC character, start of arrow key sequence
                 try {
-                    // Read the next two characters that form the arrow key sequence
                     int c2 = terminal.reader().read();
                     if (c2 == 91) {  // '[' character
                         int c3 = terminal.reader().read();
-
-                        if (c3 == 68) {  // Left arrow key
-                            synchronized (entries) {
+                        synchronized (entries) {
+                            if (c3 == 68) {  // Left arrow key
                                 if (idx > 0) idx--;
-                            }
-                        } else if (c3 == 67) {  // Right arrow key
-                            synchronized (entries) {
+                            } else if (c3 == 67) {  // Right arrow key
+                                if (idx < entries.size() - 1) idx++;
+                            } else if (c3 == 65) {  // Up arrow key
+                                if (idx > 0) idx--;
+                            } else if (c3 == 66) {  // Down arrow key
                                 if (idx < entries.size() - 1) idx++;
                             }
                         }
                     }
                 } catch (IOException ignored) {
-                    // If we can't read the next characters, ignore the ESC
                 }
             } else if (ch == 3) {  // Ctrl+C to force quit
                 running = false;
@@ -300,7 +316,8 @@ public class InteractiveService {
                 }
                 Files.createFile(p);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private void appendHistoryUnique(String historyFile, String line) {
@@ -313,6 +330,7 @@ public class InteractiveService {
             String last = lines.isEmpty() ? null : lines.get(lines.size() - 1);
             if (last != null && last.equals(line)) return;
             Files.write(p, Collections.singletonList(line), StandardOpenOption.APPEND);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 }

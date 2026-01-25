@@ -3,10 +3,14 @@ package com.example.askquery.service;
 import com.example.askquery.config.AppProperties;
 import com.example.askquery.config.DashscopeProperties;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.jline.reader.*;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.reader.impl.history.DefaultHistory;
+import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
@@ -61,6 +65,9 @@ public class InteractiveService {
                 System.getProperty("user.home") + File.separator + ".ask_query_history");
         ensureHistoryFile(histPath);
 
+        // Clear the history file to start fresh
+        clearHistoryFile(histPath);
+
         Terminal terminal = TerminalBuilder.builder()
                 .system(true)
                 .build();
@@ -114,7 +121,7 @@ public class InteractiveService {
             submitAndMaybeWait(initialQuery, histPath, reader, exits);
         }
 
-        String prompt = "请输入你的问题（或输入 exit/quit 退出；:h 查看历史记录）： ";
+        String prompt = "请输入你的问题（或输入 exit/quit 退出；h 查看历史记录）： ";
         while (true) {
             String line;
             try {
@@ -131,7 +138,7 @@ public class InteractiveService {
             String s = line.trim();
             if (s.isEmpty()) continue;
 
-            if (s.equalsIgnoreCase(":h") || s.equalsIgnoreCase(":history")) {
+            if (s.equalsIgnoreCase("h")) {
                 showHistory(terminal);
                 continue;
             }
@@ -235,6 +242,7 @@ public class InteractiveService {
         }
     }
 
+
     private void showHistory(Terminal terminal) {
         synchronized (entries) {
             if (entries.isEmpty()) {
@@ -253,29 +261,54 @@ public class InteractiveService {
                     terminal.writer().println("    回答: (等待中...)");
                 }
                 terminal.writer().println("---------------------------");
+
+                // Add five blank lines between questions (except for the last entry)
+                if (i < entries.size() - 1) {
+                    for (int j = 0; j < 5; j++) {
+                        terminal.writer().println();
+                    }
+                }
             }
-            terminal.writer().println("按 'q' 键退出历史记录视图...");
+            terminal.writer().println("按 q 键或 Esc 键退出历史记录视图...");
             terminal.flush();
         }
 
-        // Wait for 'q' key to exit - read directly from terminal to avoid Enter requirement
+        // Save original terminal attributes
+        Attributes originalAttrs = terminal.enterRawMode(); // ✅ This is the correct way!
+
         try {
             int ch;
             while (true) {
                 ch = terminal.reader().read();
-                if (ch == 'q' || ch == 'Q') {
+                if (ch == 'q' || ch == 'Q' || ch == 27) { // 27 = ESC
+                    break;
+                }
+                if (ch == 3 || ch == 4) { // Ctrl+C or Ctrl+D
                     break;
                 }
             }
-        } catch (IOException | IllegalStateException e) {
+        } catch (IOException e) {
             // Ignore
+        } finally {
+            // Restore original terminal mode
+            terminal.setAttributes(originalAttrs);
         }
 
-        // Clear the screen by printing new lines
-        for (int i = 0; i < 30; i++) {
-            terminal.writer().println();
-        }
+        // Clear screen
+        terminal.writer().println("\n".repeat(30));
         terminal.flush();
+    }
+
+    private void clearHistoryFile(String historyFile) {
+        try {
+            Path p = Paths.get(historyFile);
+            if (Files.exists(p)) {
+                // Clear the file by writing an empty string
+                Files.write(p, new byte[0]);
+            }
+        } catch (IOException ignored) {
+            // If we can't clear the file, continue anyway
+        }
     }
 
     private void appendHistoryUnique(String historyFile, String line) {

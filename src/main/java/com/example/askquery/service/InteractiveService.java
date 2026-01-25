@@ -177,57 +177,49 @@ public class InteractiveService {
         terminal.flush();
 
         boolean running = true;
-        try {
-            while (running) {
-                showEntryAt(terminal, idx);
+        while (running) {
+            showEntryAt(terminal, idx);
 
-                int ch;
+            int ch;
+            try {
+                ch = terminal.reader().read();
+            } catch (IOException | IllegalStateException e) {
+                break;
+            }
+            LOGGER.info("Detected {} character for arrow key sequence", ch);
+
+            if (ch == 13 || ch == 10) {  // Enter key
+                running = false;
+                break;
+            } else if (ch == 'q' || ch == 'Q') {  // q key to quit
+                running = false;
+                break;
+            } else if (ch == 27) {  // ESC character, start of arrow key sequence
                 try {
-                    ch = terminal.reader().read();
-                } catch (IOException | IllegalStateException e) {
-                    break;
-                }
-                LOGGER.info("Detected {} character for arrow key sequence", ch);
-
-                if (ch == 13 || ch == 10) {  // Enter key
-                    running = false;
-                    break;
-                } else if (ch == 'q' || ch == 'Q') {  // q key to quit
-                    running = false;
-                    break;
-                } else if (ch == 27) {  // ESC character, start of arrow key sequence
-                    try {
-                        LOGGER.info("Detected ESC character for arrow key sequence");
-                        int c2 = terminal.reader().read();
-                        if (c2 == 91) {  // '[' character
-                            LOGGER.info("Detected '[' character for arrow key sequence");
-                            int c3 = terminal.reader().read();
-                            synchronized (entries) {
-                                if (c3 == 68) {  // Left arrow key
-                                    LOGGER.info("Left arrow key pressed");
-                                    if (idx > 0) idx--;
-                                } else if (c3 == 67) {  // Right arrow key
-                                    if (idx < entries.size() - 1) idx++;
-                                } else if (c3 == 65) {  // Up arrow key
-                                    LOGGER.info("Up arrow key pressed");
-                                    if (idx > 0) idx--;
-                                } else if (c3 == 66) {  // Down arrow key
-                                    if (idx < entries.size() - 1) idx++;
-                                }
+                    LOGGER.info("Detected ESC character for arrow key sequence");
+                    int c2 = terminal.reader().read();
+                    if (c2 == 91) {  // '[' character
+                        LOGGER.info("Detected '[' character for arrow key sequence");
+                        int c3 = terminal.reader().read();
+                        synchronized (entries) {
+                            if (c3 == 68) {  // Left arrow key
+                                LOGGER.info("Left arrow key pressed");
+                                if (idx > 0) idx--;
+                            } else if (c3 == 67) {  // Right arrow key
+                                if (idx < entries.size() - 1) idx++;
+                            } else if (c3 == 65) {  // Up arrow key
+                                LOGGER.info("Up arrow key pressed");
+                                if (idx > 0) idx--;
+                            } else if (c3 == 66) {  // Down arrow key
+                                if (idx < entries.size() - 1) idx++;
                             }
                         }
-                    } catch (IOException ignored) {
                     }
-                } else if (ch == 3) {  // Ctrl+C to force quit
-                    running = false;
-                    break;
+                } catch (IOException ignored) {
                 }
-            }
-        } finally {
-            // Restore cooked mode
-            try {
-                terminal.close();
-            } catch (Exception ignored) {
+            } else if (ch == 3) {  // Ctrl+C to force quit
+                running = false;
+                break;
             }
         }
 

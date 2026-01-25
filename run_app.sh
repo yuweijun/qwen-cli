@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Script to run the AskQuery Java application
-# Logs output to the logs directory in the project root
+# Script to run the AskQuery Java application in foreground for interactive use
+# Arrow keys and other interactive features work properly in foreground mode
+# Note: For full interactive functionality, the application runs directly in terminal
+# without piping through tee to preserve terminal capabilities
 
 # Set the project root directory
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,8 +20,8 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="$LOGS_DIR/app_$TIMESTAMP.log"
 
 # Print startup information
-echo "Starting AskQuery Application..."
-echo "Log file: $LOG_FILE"
+echo "Starting AskQuery Application in interactive mode..."
+echo "Log file: $LOG_FILE (logging starts after exit)"
 echo "JAR file: $JAR_FILE"
 echo "----------------------------------------"
 
@@ -30,8 +32,9 @@ if [ ! -f "$JAR_FILE" ]; then
     exit 1
 fi
 
-# Run the Java application with logging
-java -cp "$JAR_FILE" com.example.askquery.Main 2>&1 | tee "$LOG_FILE"
+# Run the Java application in interactive mode with logging
+# Using 'script' command to capture output while preserving terminal interactivity
+script -q "$LOG_FILE" -c "java -cp '$JAR_FILE' com.example.askquery.Main"
 
 # Print completion message
 echo "----------------------------------------"

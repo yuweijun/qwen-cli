@@ -85,10 +85,10 @@ public class InteractiveService {
 
     public void run(String initialQuery) throws Exception {
         String jsonHistPath = Objects.requireNonNullElse(appProps.getHistoryFile(),
-                System.getProperty("user.home") + File.separator + ".ask_query_history.json");
+                System.getProperty("user.home") + File.separator + ".qwen_history.json");
 
         // For JLine history, use a separate text file to avoid conflicts with JSON format
-        String jlineHistPath = System.getProperty("user.home") + File.separator + ".ask_query_jline_history.txt";
+        String jlineHistPath = System.getProperty("user.home") + File.separator + ".qwen_jline_history.txt";
 
         ensureHistoryFile(jlineHistPath);
 
@@ -391,7 +391,7 @@ public class InteractiveService {
         terminal.writer().println("========== 历史记录 ==========");
         for (int i = 0; i < historyEntries.size(); i++) {
             HistoryEntry entry = historyEntries.get(i);
-            terminal.writer().println("[" + (i + 1) + "] 问题: " + entry.getQuestion());
+            terminal.writer().println("[" + (i + 1) + "] 问题: \u001B[32m" + entry.getQuestion() + "\u001B[0m");
             if (entry.getAnswer() != null) {
                 terminal.writer().println("    回答: " + entry.getAnswer());
             } else {

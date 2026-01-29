@@ -88,7 +88,7 @@ public class InteractiveService {
                 System.getProperty("user.home") + File.separator + ".ask_query_history.json");
 
         // For JLine history, use a separate text file to avoid conflicts with JSON format
-        String jlineHistPath = System.getProperty("user.home") + File.separator + ".ask_query_jline_history";
+        String jlineHistPath = System.getProperty("user.home") + File.separator + ".ask_query_jline_history.txt";
 
         ensureHistoryFile(jlineHistPath);
 
@@ -221,6 +221,21 @@ public class InteractiveService {
 
 
     private void submitAndMaybeWait(String query, String histPath, LineReader reader, List<String> exits) {
+        // First, check if the question already exists in history
+        HistoryEntry existingEntry = findExistingQuestion(query);
+
+        if (existingEntry != null) {
+            // Use existing answer from history
+            if (!parallelMode) {
+                useExistingAnswer(query, existingEntry.getAnswer());
+            } else {
+                // For parallel mode, submit to executor to maintain consistency
+                executor.submit(() -> useExistingAnswer(query, existingEntry.getAnswer()));
+            }
+            return;
+        }
+
+        // If not found in history, proceed with the normal flow
         synchronized (convo) {
             convo.addLast(Map.of("role", "user", "content", query));
             if (appProps.getContextLength() > 0) {
@@ -274,6 +289,56 @@ public class InteractiveService {
                 }
             });
         }
+    }
+
+    /**
+     * Finds an existing question in the history and returns its entry
+     */
+    private HistoryEntry findExistingQuestion(String query) {
+        List<HistoryEntry> historyEntries = historyManager.loadHistory();
+
+        // Look for an exact match of the question
+        for (HistoryEntry entry : historyEntries) {
+            if (entry.getQuestion().equals(query) && entry.getAnswer() != null) {
+                return entry;
+            }
+        }
+
+        return null; // Not found
+    }
+
+    /**
+     * Uses an existing answer from history
+     */
+    private void useExistingAnswer(String question, String answer) {
+        // Add to conversation context if needed
+        synchronized (convo) {
+            convo.addLast(Map.of("role", "user", "content", question));
+            convo.addLast(Map.of("role", "assistant", "content", answer));
+            if (appProps.getContextLength() > 0) {
+                while (convo.size() > appProps.getContextLength() * 2) convo.removeFirst();
+            }
+        }
+
+        // Create and add entry to in-memory list
+        Entry entry = new Entry(question);
+        entry.setAnswer(answer);
+        synchronized (entries) {
+            entries.add(entry);
+        }
+
+        // Print the existing answer
+        if (parallelMode) {
+            synchronized (System.out) {
+                System.out.println("[回答] " + answer);
+                System.out.println("(从历史记录中获取的答案)");
+            }
+        } else {
+            System.out.println("[回答] " + answer);
+            System.out.println("(从历史记录中获取的答案)");
+        }
+
+        // Note: We don't need to save to file again since it's already in history
     }
 
     private List<Map<String, String>> buildMessages(String currentUser) {

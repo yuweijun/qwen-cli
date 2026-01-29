@@ -401,7 +401,7 @@ public class InteractiveService {
 
             // Add five blank lines between questions (except for the last entry)
             if (i < historyEntries.size() - 1) {
-                for (int j = 0; j < 5; j++) {
+                for (int j = 0; j < 2; j++) {
                     terminal.writer().println();
                 }
             }

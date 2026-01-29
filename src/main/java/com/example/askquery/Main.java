@@ -35,35 +35,35 @@ public class Main {
 
     private static AppProperties loadAppProperties() {
         AppProperties props = new AppProperties();
-        
+
         // Load from system properties or use defaults
-        String historyFile = System.getProperty("app.historyFile", 
-            System.getProperty("user.home") + "/.qwen_cli_history");
+        String historyFile = System.getProperty("app.historyFile",
+            System.getProperty("user.home") + "/.qwen_cli_history.json");
         props.setHistoryFile(historyFile);
-        
+
         String contextLengthStr = System.getProperty("app.contextLength", "6");
         try {
             props.setContextLength(Integer.parseInt(contextLengthStr));
         } catch (NumberFormatException e) {
             props.setContextLength(6);
         }
-        
+
         String parallelStr = System.getProperty("app.parallel", "false");
         props.setParallel(Boolean.parseBoolean(parallelStr));
-        
+
         String concurrencyStr = System.getProperty("app.concurrency", "2");
         try {
             props.setConcurrency(Integer.parseInt(concurrencyStr));
         } catch (NumberFormatException e) {
             props.setConcurrency(2);
         }
-        
+
         String exitCommands = System.getProperty("app.exitCommands", "exit,quit,q");
         props.setExitCommands(exitCommands);
-        
+
         String systemMessage = System.getProperty("app.systemMessage", "You are a helpful assistant.");
         props.setSystemMessage(systemMessage);
-        
+
         return props;
     }
 

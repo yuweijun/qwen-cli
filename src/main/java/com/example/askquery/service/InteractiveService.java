@@ -2,6 +2,7 @@ package com.example.askquery.service;
 
 import com.example.askquery.config.AppProperties;
 import com.example.askquery.config.DashscopeProperties;
+import com.example.askquery.model.HistoryEntry;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -33,6 +34,7 @@ public class InteractiveService {
     private final AppProperties appProps;
     private final DashscopeProperties dashProps;
     private final DashscopeClient client;
+    private final HistoryManager historyManager;
 
     private final Deque<Map<String, String>> convo = new ArrayDeque<>();
     private final List<Entry> entries = new ArrayList<>();
@@ -43,9 +45,13 @@ public class InteractiveService {
         this.appProps = appProps;
         this.dashProps = dashProps;
         this.client = client;
+        this.historyManager = new HistoryManager(appProps.getHistoryFile(), 100); // Keep latest 100 records
         this.parallelMode = appProps.isParallel();
         int threads = Math.max(1, appProps.getConcurrency());
         this.executor = parallelMode ? Executors.newFixedThreadPool(threads) : null;
+
+        // Load existing history entries
+        loadHistoryEntries();
     }
 
     private static class Entry {
@@ -62,13 +68,32 @@ public class InteractiveService {
         }
     }
 
-    public void run(String initialQuery) throws Exception {
-        String histPath = Objects.requireNonNullElse(appProps.getHistoryFile(),
-                System.getProperty("user.home") + File.separator + ".ask_query_history");
-        ensureHistoryFile(histPath);
+    /**
+     * Loads history entries from the JSON file into the entries list
+     */
+    private void loadHistoryEntries() {
+        List<HistoryEntry> historyEntries = historyManager.loadHistory();
+        synchronized (entries) {
+            entries.clear();
+            for (HistoryEntry historyEntry : historyEntries) {
+                Entry entry = new Entry(historyEntry.getQuestion());
+                entry.setAnswer(historyEntry.getAnswer());
+                entries.add(entry);
+            }
+        }
+    }
 
-        // Clear the history file to start fresh
-        clearHistoryFile(histPath);
+    public void run(String initialQuery) throws Exception {
+        String jsonHistPath = Objects.requireNonNullElse(appProps.getHistoryFile(),
+                System.getProperty("user.home") + File.separator + ".ask_query_history.json");
+
+        // For JLine history, use a separate text file to avoid conflicts with JSON format
+        String jlineHistPath = System.getProperty("user.home") + File.separator + ".ask_query_jline_history";
+
+        ensureHistoryFile(jlineHistPath);
+
+        // DO NOT clear the history file - preserve history between sessions
+        // The JSON-based history is managed separately
 
         Terminal terminal = TerminalBuilder.builder()
                 .system(true)
@@ -80,18 +105,40 @@ public class InteractiveService {
         LineReader reader = LineReaderBuilder.builder()
                 .terminal(terminal)
                 .parser(new DefaultParser())
-                .variable(LineReader.HISTORY_FILE, Paths.get(histPath))
+                .variable(LineReader.HISTORY_FILE, Paths.get(jlineHistPath))
                 .history(history)
                 .build();
 
-        // Attempt to load history, but handle errors gracefully
+        // Load JLine history from its file
         try {
             history.attach(reader);
             history.load();
         } catch (Exception e) {
-            // If history loading fails, continue without history
-            System.err.println("Warning: Could not load history file: " + e.getMessage());
-            System.err.println("History functionality may be limited.");
+            // If JLine history loading fails, continue without it
+            System.err.println("Warning: Could not load JLine history file: " + e.getMessage());
+        }
+
+        // Load questions from JSON history and add unique ones to JLine history
+        try {
+            List<HistoryEntry> jsonHistory = historyManager.loadHistory();
+            for (HistoryEntry entry : jsonHistory) {
+                // Add to JLine history only if it's not already there
+                // Check if the question is already in the current history
+                boolean exists = false;
+                for (org.jline.reader.History.Entry histEntry : history) {
+                    if (entry.getQuestion().equals(histEntry.line())) {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists) {
+                    history.add(entry.getQuestion());
+                }
+            }
+        } catch (Exception e) {
+            // If JSON history loading fails, continue without it
+            System.err.println("Warning: Could not load JSON history: " + e.getMessage());
         }
 
         List<String> exits = Arrays.stream(appProps.getExitCommands().split(","))
@@ -119,8 +166,8 @@ public class InteractiveService {
         if (initialQuery != null && !initialQuery.isBlank()) {
             // Add to JLine history as well as file
             reader.getHistory().add(initialQuery);
-            appendHistoryUnique(histPath, initialQuery);
-            submitAndMaybeWait(initialQuery, histPath, reader, exits);
+            appendHistoryUnique(jlineHistPath, initialQuery);
+            submitAndMaybeWait(initialQuery, jsonHistPath, reader, exits);
         }
 
         String prompt = "\n========================================================" +
@@ -157,8 +204,8 @@ public class InteractiveService {
             // Add to JLine history as well as file
             System.out.println("========================================================\n");
             reader.getHistory().add(s);
-            appendHistoryUnique(histPath, s);
-            submitAndMaybeWait(s, histPath, reader, exits);
+            appendHistoryUnique(jlineHistPath, s);
+            submitAndMaybeWait(s, jsonHistPath, reader, exits);
         }
 
         if (executor != null) {
@@ -199,6 +246,9 @@ public class InteractiveService {
             entry.setAnswer(text);
             System.out.println("[回答] " + text);
 
+            // Add to JSON history
+            historyManager.addEntry(new HistoryEntry(query, text));
+
             // Save question and response to file
             saveQuestionToFile(query, text);
         } else {
@@ -215,6 +265,9 @@ public class InteractiveService {
                 entry.setAnswer(text);
                 synchronized (System.out) {
                     System.out.println("\n[回答] " + text);
+
+                    // Add to JSON history
+                    historyManager.addEntry(new HistoryEntry(query, text));
 
                     // Save question and response to file
                     saveQuestionToFile(query, text);
@@ -255,40 +308,41 @@ public class InteractiveService {
 
 
     private void showHistory(Terminal terminal) {
+        // Load history from JSON file
+        List<HistoryEntry> historyEntries = historyManager.loadHistory();
+
         // Clear screen first to create a clean view
         for (int i = 0; i < 50; i++) {
             terminal.writer().println();  // Print multiple newlines to clear screen
         }
         terminal.flush();
 
-        synchronized (entries) {
-            if (entries.isEmpty()) {
-                terminal.writer().println("没有历史记录。");
-                terminal.flush();
-                return;
-            }
-
-            terminal.writer().println("========== 历史记录 ==========");
-            for (int i = 0; i < entries.size(); i++) {
-                Entry entry = entries.get(i);
-                terminal.writer().println("[" + (i + 1) + "] 问题: " + entry.question);
-                if (entry.answer != null) {
-                    terminal.writer().println("    回答: " + entry.answer);
-                } else {
-                    terminal.writer().println("    回答: (等待中...)");
-                }
-                terminal.writer().println("---------------------------");
-
-                // Add five blank lines between questions (except for the last entry)
-                if (i < entries.size() - 1) {
-                    for (int j = 0; j < 5; j++) {
-                        terminal.writer().println();
-                    }
-                }
-            }
-            terminal.writer().println("按 q 键或 Esc 键退出历史记录视图...");
+        if (historyEntries.isEmpty()) {
+            terminal.writer().println("没有历史记录。");
             terminal.flush();
+            return;
         }
+
+        terminal.writer().println("========== 历史记录 ==========");
+        for (int i = 0; i < historyEntries.size(); i++) {
+            HistoryEntry entry = historyEntries.get(i);
+            terminal.writer().println("[" + (i + 1) + "] 问题: " + entry.getQuestion());
+            if (entry.getAnswer() != null) {
+                terminal.writer().println("    回答: " + entry.getAnswer());
+            } else {
+                terminal.writer().println("    回答: (等待中...)");
+            }
+            terminal.writer().println("---------------------------");
+
+            // Add five blank lines between questions (except for the last entry)
+            if (i < historyEntries.size() - 1) {
+                for (int j = 0; j < 5; j++) {
+                    terminal.writer().println();
+                }
+            }
+        }
+        terminal.writer().println("按 q 键或 Esc 键退出历史记录视图...");
+        terminal.flush();
 
         // Save original terminal attributes
         Attributes originalAttrs = terminal.enterRawMode(); // ✅ This is the correct way!
@@ -316,17 +370,6 @@ public class InteractiveService {
         terminal.flush();
     }
 
-    private void clearHistoryFile(String historyFile) {
-        try {
-            Path p = Paths.get(historyFile);
-            if (Files.exists(p)) {
-                // Clear the file by writing an empty string
-                Files.write(p, new byte[0]);
-            }
-        } catch (IOException ignored) {
-            // If we can't clear the file, continue anyway
-        }
-    }
 
     private void appendHistoryUnique(String historyFile, String line) {
         try {

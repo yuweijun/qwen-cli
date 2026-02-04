@@ -81,5 +81,6 @@ work
 .sts4-cache
 questions
 gradle
+demo
 
 demo/*.html

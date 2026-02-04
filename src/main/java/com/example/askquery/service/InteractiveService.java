@@ -84,22 +84,18 @@ public class InteractiveService {
     }
 
     public void run(String initialQuery) throws Exception {
-        String jsonHistPath = Objects.requireNonNullElse(appProps.getHistoryFile(),
-                System.getProperty("user.home") + File.separator + ".qwen_history.json");
+        String jsonHistPath = appProps.getHistoryFile();
 
-        // For JLine history, use a separate text file to avoid conflicts with JSON format
-        String jlineHistPath = System.getProperty("user.home") + File.separator + ".qwen_jline_history.txt";
+        // For JLine history, use a separate text file in tmp directory with timestamp to avoid conflicts with JSON format
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String jlineHistPath = System.getProperty("java.io.tmpdir") + File.separator + ".qwen_jline_history_" + timestamp + ".txt";
 
         ensureHistoryFile(jlineHistPath);
-
-        // DO NOT clear the history file - preserve history between sessions
-        // The JSON-based history is managed separately
 
         Terminal terminal = TerminalBuilder.builder()
                 .system(true)
                 .build();
 
-        // Create a new history instance to avoid format issues
         DefaultHistory history = new DefaultHistory();
 
         LineReader reader = LineReaderBuilder.builder()

@@ -15,7 +15,9 @@ import java.util.stream.Collectors;
 public class DashscopeClient {
 
     private final DashscopeProperties props;
+
     private final Generation generation;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     public DashscopeClient(DashscopeProperties props) {

@@ -7,6 +7,9 @@ public class AppProperties {
     private int concurrency = 2;
     private String exitCommands = "exit,quit,q";
     private String systemMessage = "You are a helpful assistant.";
+    private boolean useBatRendering = true;
+    private String batTheme = "Monokai Extended";
+    private String batCommand = "/usr/local/bin/bat";
 
     public String getHistoryFile() {
         return historyFile;
@@ -54,5 +57,29 @@ public class AppProperties {
 
     public void setSystemMessage(String systemMessage) {
         this.systemMessage = systemMessage;
+    }
+
+    public boolean isUseBatRendering() {
+        return useBatRendering;
+    }
+
+    public void setUseBatRendering(boolean useBatRendering) {
+        this.useBatRendering = useBatRendering;
+    }
+
+    public String getBatTheme() {
+        return batTheme;
+    }
+
+    public void setBatTheme(String batTheme) {
+        this.batTheme = batTheme;
+    }
+
+    public String getBatCommand() {
+        return batCommand;
+    }
+
+    public void setBatCommand(String batCommand) {
+        this.batCommand = batCommand;
     }
 }

@@ -1,10 +1,7 @@
 package com.example.askquery.demo;
 
-import com.example.askquery.config.AppProperties;
-import com.example.askquery.config.DashscopeProperties;
-import com.example.askquery.service.InteractiveService;
+import com.example.askquery.util.MarkdownRenderer;
 
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -13,13 +10,6 @@ import java.nio.file.Path;
  */
 public class HtmlDemo {
     public static void main(String[] args) throws Exception {
-        // Create service instance
-        AppProperties appProps = new AppProperties();
-        appProps.setHistoryFile("/tmp/demo_history.json");
-        
-        DashscopeProperties dashProps = new DashscopeProperties();
-        InteractiveService service = new InteractiveService(appProps, dashProps, null);
-        
         // Sample content with working markdown features
         String question = "What are the key features of modern web development?";
         String response = """
@@ -91,11 +81,8 @@ public class HtmlDemo {
             For more information, visit [web.dev](https://web.dev) or email us at contact@example.com.
             """;
         
-        // Use reflection to call the private method
-        Method createMethod = InteractiveService.class.getDeclaredMethod("createMonokaiStyledMarkdown", String.class, String.class);
-        createMethod.setAccessible(true);
-        
-        String htmlContent = (String) createMethod.invoke(service, question, response);
+        // Generate HTML content using MarkdownRenderer utility
+        String htmlContent = MarkdownRenderer.createMonokaiStyledMarkdown(question, response);
         
         // Write to file
         Path outputPath = Path.of("demo/modern_web_dev_demo.html");

@@ -1,31 +1,15 @@
 package com.example.askquery.service;
 
-import com.example.askquery.config.AppProperties;
-import com.example.askquery.config.DashscopeProperties;
+import com.example.askquery.util.MarkdownRenderer;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Method;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 public class AdvancedMarkdownTest {
 
     @Test
-    public void testTableConversion() throws Exception {
+    public void testTableConversion() {
         // Given
-        AppProperties appProps = new AppProperties();
-        appProps.setHistoryFile("/tmp/test_history.json");
-        
-        DashscopeProperties dashProps = new DashscopeProperties();
-        DashscopeClient client = mock(DashscopeClient.class);
-        
-        InteractiveService service = new InteractiveService(appProps, dashProps, client);
-        
-        Method convertMethod = InteractiveService.class.getDeclaredMethod("convertMarkdownToHtml", String.class);
-        convertMethod.setAccessible(true);
-        
-        // Test with a proper table
         String markdownTable = """
             | Header 1 | Header 2 |
             |----------|----------|
@@ -33,7 +17,7 @@ public class AdvancedMarkdownTest {
             """;
         
         // When
-        String html = (String) convertMethod.invoke(service, markdownTable);
+        String html = MarkdownRenderer.convertMarkdownToHtml(markdownTable);
         
         // Then - Tables should now work with flexmark
         System.out.println("Generated HTML for table test:");
@@ -47,23 +31,12 @@ public class AdvancedMarkdownTest {
     }
 
     @Test
-    public void testAutolinkDetection() throws Exception {
+    public void testAutolinkDetection() {
         // Given
-        AppProperties appProps = new AppProperties();
-        appProps.setHistoryFile("/tmp/test_history.json");
-        
-        DashscopeProperties dashProps = new DashscopeProperties();
-        DashscopeClient client = mock(DashscopeClient.class);
-        
-        InteractiveService service = new InteractiveService(appProps, dashProps, client);
-        
-        Method convertMethod = InteractiveService.class.getDeclaredMethod("convertMarkdownToHtml", String.class);
-        convertMethod.setAccessible(true);
-        
         String markdownWithUrls = "Visit https://example.com for more information.";
         
         // When
-        String html = (String) convertMethod.invoke(service, markdownWithUrls);
+        String html = MarkdownRenderer.convertMarkdownToHtml(markdownWithUrls);
         
         // Then
         assertTrue(html.contains("<a href=\"https://example.com\">https://example.com</a>"));
@@ -71,19 +44,8 @@ public class AdvancedMarkdownTest {
     }
 
     @Test
-    public void testComplexMarkdown() throws Exception {
+    public void testComplexMarkdown() {
         // Given
-        AppProperties appProps = new AppProperties();
-        appProps.setHistoryFile("/tmp/test_history.json");
-        
-        DashscopeProperties dashProps = new DashscopeProperties();
-        DashscopeClient client = mock(DashscopeClient.class);
-        
-        InteractiveService service = new InteractiveService(appProps, dashProps, client);
-        
-        Method convertMethod = InteractiveService.class.getDeclaredMethod("convertMarkdownToHtml", String.class);
-        convertMethod.setAccessible(true);
-        
         String complexMarkdown = """
             # Main Title
             
@@ -109,7 +71,7 @@ public class AdvancedMarkdownTest {
             """;
         
         // When
-        String html = (String) convertMethod.invoke(service, complexMarkdown);
+        String html = MarkdownRenderer.convertMarkdownToHtml(complexMarkdown);
         
         // Then
         assertTrue(html.contains("<h1>Main Title</h1>"));

@@ -6,6 +6,15 @@ This file provides guidance to Qoder (qoder.com) when working with code in this 
 
 Qwen CLI is a Java-based interactive command-line application that provides access to the Qwen AI model through the DashScope API. The application maintains conversation context, persistent history, and supports both sequential and parallel request modes.
 
+## Code Style Guidelines
+
+- **Java code line wrapping**: Use 120 characters maximum line length
+- **Indentation**: 4 spaces for Java code
+- **Naming conventions**: Follow standard Java camelCase and PascalCase conventions
+- **Imports**: Use static imports when appropriate, avoid wildcard imports (*)
+- **POJO methods**: DO NOT use one-line style for setter/getter methods
+- **Class properties**: Add blank line after every property in Java classes
+
 ## Build and Run Commands
 
 ### Building
@@ -21,6 +30,12 @@ export DASHSCOPE_API_KEY=your_api_key_here
 
 # Run JAR directly
 java -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
+
+# With bat markdown rendering (enabled by default)
+java -Dapp.useBatRendering=true -Dapp.batTheme="Monokai Extended" -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
+
+# With custom bat command path
+java -Dapp.batCommand="/opt/homebrew/bin/bat" -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
 
 # With custom configuration
 java -Dapp.contextLength=10 -Ddashscope.model=qwen-max -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
@@ -73,6 +88,9 @@ Configuration is loaded via system properties with fallback to defaults:
 - `app.concurrency`: Thread pool size for parallel mode (default: 2)
 - `app.exitCommands`: Comma-separated exit commands (default: "exit,quit,q")
 - `app.systemMessage`: AI system prompt (default: "You are a helpful assistant.")
+- `app.useBatRendering`: Enable bat markdown rendering (default: true)
+- `app.batTheme`: Theme for bat rendering (default: "Monokai Extended")
+- `app.batCommand`: Path to bat command (default: "/usr/local/bin/bat")
 
 **DashScope Properties** (`config/DashscopeProperties.java`)
 - `dashscope.api.key`: API key (falls back to `DASHSCOPE_API_KEY` env var)
@@ -106,10 +124,13 @@ src/main/java/com/example/askquery/
 │   └── DashscopeProperties.java      # API client settings
 ├── model/
 │   └── HistoryEntry.java             # Q&A data model
-└── service/
-    ├── DashscopeClient.java          # API client wrapper
-    ├── HistoryManager.java           # JSON history persistence
-    └── InteractiveService.java       # Main CLI loop and orchestration
+├── service/
+│   ├── DashscopeClient.java          # API client wrapper
+│   ├── HistoryManager.java           # JSON history persistence
+│   └── InteractiveService.java       # Main CLI loop and orchestration
+└── util/
+    ├── BatRenderer.java              # Bat command integration for markdown rendering
+    └── MarkdownRenderer.java         # HTML markdown rendering utilities
 ```
 
 ## Dependencies

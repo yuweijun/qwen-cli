@@ -2,6 +2,7 @@ package com.example.askquery.service;
 
 import com.example.askquery.config.AppProperties;
 import com.example.askquery.config.DashscopeProperties;
+import com.example.askquery.util.MarkdownRenderer;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -17,23 +18,11 @@ public class InteractiveServiceHtmlTest {
     @Test
     public void testHtmlGenerationContainsMonokaiStyling() throws Exception {
         // Given
-        AppProperties appProps = new AppProperties();
-        appProps.setHistoryFile("/tmp/test_history.json");
-        
-        DashscopeProperties dashProps = new DashscopeProperties();
-        DashscopeClient client = mock(DashscopeClient.class);
-        
-        InteractiveService service = new InteractiveService(appProps, dashProps, client);
-        
-        // Use reflection to test the HTML generation method
-        Method createMethod = InteractiveService.class.getDeclaredMethod("createMonokaiStyledMarkdown", String.class, String.class);
-        createMethod.setAccessible(true);
-        
         String question = "What is Java?";
         String response = "**Java** is a programming language with ```code examples``` and *italic text*.";
         
         // When
-        String htmlContent = (String) createMethod.invoke(service, question, response);
+        String htmlContent = MarkdownRenderer.createMonokaiStyledMarkdown(question, response);
         
         // Then
         assertNotNull(htmlContent);
@@ -50,22 +39,10 @@ public class InteractiveServiceHtmlTest {
     @Test
     public void testEscapeHtmlMethod() throws Exception {
         // Given
-        AppProperties appProps = new AppProperties();
-        appProps.setHistoryFile("/tmp/test_history.json");
-        
-        DashscopeProperties dashProps = new DashscopeProperties();
-        DashscopeClient client = mock(DashscopeClient.class);
-        
-        InteractiveService service = new InteractiveService(appProps, dashProps, client);
-        
-        // Use reflection to test the escape method
-        Method escapeMethod = InteractiveService.class.getDeclaredMethod("escapeHtml", String.class);
-        escapeMethod.setAccessible(true);
-        
         String dangerousInput = "<script>alert('xss')</script>";
         
         // When
-        String escaped = (String) escapeMethod.invoke(service, dangerousInput);
+        String escaped = MarkdownRenderer.escapeHtml(dangerousInput);
         
         // Then
         assertNotNull(escaped);

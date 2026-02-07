@@ -7,6 +7,7 @@ import com.example.askquery.util.BatRenderer;
 import com.example.askquery.util.MarkdownRenderer;
 import com.example.askquery.util.AnsiColors;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jetbrains.annotations.NotNull;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -97,6 +98,7 @@ public class InteractiveService {
                input.equalsIgnoreCase("s") || 
                input.equalsIgnoreCase(":s") || 
                input.equalsIgnoreCase(":search") ||
+               input.equalsIgnoreCase("o") ||
                exits.contains(input.toLowerCase());
     }
     private void loadHistoryEntries() {
@@ -192,12 +194,14 @@ public class InteractiveService {
 
         String prompt = "\n" + AnsiColors.promptHeader("请输入你的问题") +
                         AnsiColors.promptText("（或输入 ") + 
-                        AnsiColors.promptNavigation("exit/quit") + 
+                        AnsiColors.promptNavigation("'q'") +
                         AnsiColors.promptText(" 退出；") +
                         AnsiColors.promptNavigation("'h'") +
                         AnsiColors.promptText(" 查看历史记录；") +
                         AnsiColors.promptNavigation("'s'") +
-                        AnsiColors.promptText(" 搜索历史记录）： ");
+                        AnsiColors.promptText(" 搜索历史记录；") +
+                        AnsiColors.promptNavigation("'o'") +
+                        AnsiColors.promptText(" 在浏览器中打开上次的回答）： ");
         while (true) {
             String line;
             try {
@@ -223,6 +227,8 @@ public class InteractiveService {
                     searchHistoryService.displayLatestHistory();
                 } else if (s.equalsIgnoreCase("s") || s.equalsIgnoreCase(":s") || s.equalsIgnoreCase(":search")) {
                     searchHistoryService.handleSearchInteraction();
+                } else if (s.equalsIgnoreCase("o")) {
+                    openLastResponseInBrowser();
                 } else if (exits.contains(s.toLowerCase())) {
                     System.out.println(AnsiColors.promptInfo("收到退出命令，") + AnsiColors.promptNavigation("等待进行中的请求并退出..."));
                     break;
@@ -514,14 +520,78 @@ public class InteractiveService {
         }
     }
 
+    private void openLastResponseInBrowser() {
+        synchronized (entries) {
+            if (entries.isEmpty()) {
+                System.out.println(AnsiColors.promptInfo("还没有任何问答记录。"));
+                return;
+            }
+
+            // Get the last entry
+            Entry lastEntry = entries.get(entries.size() - 1);
+            
+            if (lastEntry.answer == null || lastEntry.answer.isEmpty()) {
+                System.out.println(AnsiColors.promptInfo("最后一个问题的回答尚未生成。"));
+                return;
+            }
+
+            try {
+                // Get current date in yyyy-MM-dd format
+                String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+                String sanitized = getSanitizedFileName(lastEntry.question);
+
+                // Create the filename with .html extension for styled content
+                String fileName = date + "_" + sanitized + ".html";
+
+                // Create the content with Monokai-themed markdown
+                String content = MarkdownRenderer.createMonokaiStyledMarkdown(lastEntry.question, lastEntry.answer);
+
+                // Write to file in questions directory
+                Path questionsDir = Paths.get("questions");
+                if (!Files.exists(questionsDir)) {
+                    Files.createDirectories(questionsDir);
+                }
+
+                Path filePath = questionsDir.resolve(fileName);
+                Files.write(filePath, content.getBytes());
+
+                // Open in browser
+                // Try different browsers/commands based on OS
+                String os = System.getProperty("os.name").toLowerCase();
+                Process process;
+                
+                if (os.contains("mac")) {
+                    process = Runtime.getRuntime().exec(new String[]{"open", filePath.toString()});
+                } else if (os.contains("win")) {
+                    process = Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", "\"\"", filePath.toString()});
+                } else {
+                    // Linux and other Unix-like systems
+                    process = Runtime.getRuntime().exec(new String[]{"xdg-open", filePath.toString()});
+                }
+                
+                process.waitFor();
+                System.out.println(AnsiColors.promptInfo("已在浏览器中打开回答：") + filePath.toAbsolutePath());
+            } catch (Exception e) {
+                System.err.println(AnsiColors.promptError("打开浏览器失败：") + e.getMessage());
+            }
+        }
+    }
+
+    @NotNull
+    private String getSanitizedFileName(String lastEntry) {
+        // Extract first 35 characters of the question and sanitize for filename
+        String first35Chars = lastEntry.length() > 35 ? lastEntry.substring(0, 35) : lastEntry;
+        return first35Chars.replaceAll("[^\\u4e00-\\u9fa5a-zA-Z\\d]", "_");
+    }
+
     private void saveQuestionToFile(String question, String response) {
         try {
             // Get current date in yyyy-MM-dd format
             String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
             // Extract first 35 characters of the question and sanitize for filename
-            String first35Chars = question.length() > 35 ? question.substring(0, 35) : question;
-            String sanitized = first35Chars.replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "_");
+            String sanitized = getSanitizedFileName(question);
 
             // Create the filename with .html extension for styled content
             String fileName = date + "_" + sanitized + ".html";

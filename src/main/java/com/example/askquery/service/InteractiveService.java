@@ -192,14 +192,14 @@ public class InteractiveService {
             submitAndMaybeWait(initialQuery, jsonHistPath, reader, exits);
         }
 
-        String prompt = "\n" + AnsiColors.promptHeader("Please enter your question") +
+        String prompt = "\n" + AnsiColors.promptHeader("Please enter your question ") +
                         AnsiColors.promptText("(or type ") + 
                         AnsiColors.promptNavigation("'q'") +
-                        AnsiColors.promptText(" to quit;") +
+                        AnsiColors.promptText(" to quit; ") +
                         AnsiColors.promptNavigation("'h'") +
-                        AnsiColors.promptText(" to view history;") +
+                        AnsiColors.promptText(" to view history; ") +
                         AnsiColors.promptNavigation("'s'") +
-                        AnsiColors.promptText(" to search history;") +
+                        AnsiColors.promptText(" to search history; ") +
                         AnsiColors.promptNavigation("'o'") +
                         AnsiColors.promptText(" to open last answer in browser): ");
         while (true) {

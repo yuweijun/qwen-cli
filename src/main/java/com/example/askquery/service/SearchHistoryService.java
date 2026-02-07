@@ -307,12 +307,22 @@ public class SearchHistoryService {
             
             if (input.equalsIgnoreCase("q")) {
                 break; // Exit history mode
-            } else if (input.equalsIgnoreCase("n") && currentPage < totalPages - 1) {
-                currentPage++; // Next page
-                continue;
-            } else if (input.equalsIgnoreCase("p") && currentPage > 0) {
-                currentPage--; // Previous page
-                continue;
+            } else if (input.equalsIgnoreCase("n")) {
+                if (currentPage < totalPages - 1) {
+                    currentPage++; // Next page
+                    continue;
+                } else {
+                    System.out.println(AnsiColors.promptInfo("No more history entries available."));
+                    continue;
+                }
+            } else if (input.equalsIgnoreCase("p")) {
+                if (currentPage > 0) {
+                    currentPage--; // Previous page
+                    continue;
+                } else {
+                    System.out.println(AnsiColors.promptInfo("Already at the first page."));
+                    continue;
+                }
             } else if (input.isEmpty()) {
                 continue; // Refresh current page
             } else {

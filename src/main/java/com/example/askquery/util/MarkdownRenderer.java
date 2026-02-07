@@ -82,7 +82,7 @@ public class MarkdownRenderer {
         html.append("            line-height: 1.6;\n");
         html.append("        }\n");
         html.append("        .container {\n");
-        html.append("            max-width: 800px;\n");
+        html.append("            width: 90%;\n");
         html.append("            margin: 0 auto;\n");
         html.append("        }\n");
         html.append("        h1 {\n");

@@ -3,12 +3,11 @@ package com.example.askquery.service;
 import com.example.askquery.config.AppProperties;
 import com.example.askquery.config.DashscopeProperties;
 import com.example.askquery.model.HistoryEntry;
-import com.example.askquery.util.BatRenderer;
-import com.example.askquery.util.MarkdownRenderer;
 import com.example.askquery.util.AnsiColors;
+import com.example.askquery.util.BatRenderer;
 import com.example.askquery.util.FilenameUtils;
+import com.example.askquery.util.MarkdownRenderer;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.jetbrains.annotations.NotNull;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -193,25 +192,25 @@ public class InteractiveService {
             submitAndMaybeWait(initialQuery, jsonHistPath, reader, exits);
         }
 
-        String prompt = "\n" + AnsiColors.promptHeader("请输入你的问题") +
-                        AnsiColors.promptText("（或输入 ") + 
+        String prompt = "\n" + AnsiColors.promptHeader("Please enter your question") +
+                        AnsiColors.promptText("(or type ") + 
                         AnsiColors.promptNavigation("'q'") +
-                        AnsiColors.promptText(" 退出；") +
+                        AnsiColors.promptText(" to quit;") +
                         AnsiColors.promptNavigation("'h'") +
-                        AnsiColors.promptText(" 查看历史记录；") +
+                        AnsiColors.promptText(" to view history;") +
                         AnsiColors.promptNavigation("'s'") +
-                        AnsiColors.promptText(" 搜索历史记录；") +
+                        AnsiColors.promptText(" to search history;") +
                         AnsiColors.promptNavigation("'o'") +
-                        AnsiColors.promptText(" 在浏览器中打开上次的回答）： ");
+                        AnsiColors.promptText(" to open last answer in browser): ");
         while (true) {
             String line;
             try {
                 line = reader.readLine(prompt);
             } catch (UserInterruptException e) {
-                System.out.println("\n" + AnsiColors.promptInfo("已收到 Ctrl+C，") + AnsiColors.promptNavigation("退出并等待进行中的请求..."));
+                System.out.println("\n" + AnsiColors.promptInfo("Ctrl+C received,") + AnsiColors.promptNavigation("exiting and waiting for ongoing requests..."));
                 break;
             } catch (EndOfFileException e) {
-                System.out.println("\n" + AnsiColors.promptNavigation("EOF，退出..."));
+                System.out.println("\n" + AnsiColors.promptNavigation("EOF, exiting..."));
                 break;
             }
 
@@ -231,7 +230,7 @@ public class InteractiveService {
                 } else if (s.equalsIgnoreCase("o")) {
                     openLastResponseInBrowser();
                 } else if (exits.contains(s.toLowerCase())) {
-                    System.out.println(AnsiColors.promptInfo("收到退出命令，") + AnsiColors.promptNavigation("等待进行中的请求并退出..."));
+                    System.out.println(AnsiColors.promptInfo("Exit command received,") + AnsiColors.promptNavigation("waiting for ongoing requests and exiting..."));
                     break;
                 }
                 continue;
@@ -296,13 +295,13 @@ public class InteractiveService {
             
             // Render response using bat if available and configured, otherwise use plain text
             if (appProps.isUseBatRendering() && BatRenderer.isBatAvailable()) {
-                System.out.println("[回答]");
+                System.out.println("[Answer]");
                 if (!BatRenderer.renderToTerminal(text, appProps.getBatTheme())) {
                     // Fallback to plain text if bat rendering fails
                     System.out.println(text);
                 }
             } else {
-                System.out.println("[回答] " + text);
+                System.out.println("[Answer] " + text);
             }
 
             // Add to JSON history
@@ -325,13 +324,13 @@ public class InteractiveService {
                 synchronized (System.out) {
                     // Render response using bat if available and configured, otherwise use plain text
                     if (appProps.isUseBatRendering() && BatRenderer.isBatAvailable()) {
-                        System.out.println("\n[回答]");
+                        System.out.println("\n[Answer]");
                         if (!BatRenderer.renderToTerminal(text, appProps.getBatTheme())) {
                             // Fallback to plain text if bat rendering fails
                             System.out.println(text);
                         }
                     } else {
-                        System.out.println("\n[回答] " + text);
+                        System.out.println("\n[Answer] " + text);
                     }
 
                     // Add to JSON history
@@ -385,28 +384,28 @@ public class InteractiveService {
             synchronized (System.out) {
                 // Render response using bat if available and configured, otherwise use plain text
                 if (appProps.isUseBatRendering() && BatRenderer.isBatAvailable()) {
-                    System.out.println("[回答]");
+                    System.out.println("[Answer]");
                     if (!BatRenderer.renderToTerminal(answer, appProps.getBatTheme())) {
                         // Fallback to plain text if bat rendering fails
                         System.out.println(answer);
                     }
                 } else {
-                    System.out.println("[回答] " + answer);
+                    System.out.println("[Answer] " + answer);
                 }
-                System.out.println("(从历史记录中获取的答案)");
+                System.out.println("(Answer retrieved from history)");
             }
         } else {
             // Render response using bat if available and configured, otherwise use plain text
             if (appProps.isUseBatRendering() && BatRenderer.isBatAvailable()) {
-                System.out.println("[回答]");
+                System.out.println("[Answer]");
                 if (!BatRenderer.renderToTerminal(answer, appProps.getBatTheme())) {
                     // Fallback to plain text if bat rendering fails
                     System.out.println(answer);
                 }
             } else {
-                System.out.println("[回答] " + answer);
+                System.out.println("[Answer] " + answer);
             }
-            System.out.println("(从历史记录中获取的答案)");
+            System.out.println("(Answer retrieved from history)");
         }
 
         // Note: We don't need to save to file again since it's already in history
@@ -454,19 +453,19 @@ public class InteractiveService {
         terminal.flush();
 
         if (historyEntries.isEmpty()) {
-            terminal.writer().println("没有历史记录。");
+            terminal.writer().println("No history records.");
             terminal.flush();
             return;
         }
 
-        terminal.writer().println("========== 历史记录 ==========");
+        terminal.writer().println("========== History Records ==========");
         for (int i = 0; i < historyEntries.size(); i++) {
             HistoryEntry entry = historyEntries.get(i);
-            terminal.writer().println("[" + (i + 1) + "] 问题: \u001B[32m" + entry.getQuestion() + "\u001B[0m");
+            terminal.writer().println("[" + (i + 1) + "] Question: \u001B[32m" + entry.getQuestion() + "\u001B[0m");
             if (entry.getAnswer() != null) {
-                terminal.writer().println("    回答: " + entry.getAnswer());
+                terminal.writer().println("    Answer: " + entry.getAnswer());
             } else {
-                terminal.writer().println("    回答: (等待中...)");
+                terminal.writer().println("    Answer: (Pending...)");
             }
             terminal.writer().println("---------------------------");
 
@@ -477,7 +476,7 @@ public class InteractiveService {
                 }
             }
         }
-        terminal.writer().println("按 q 键或 Esc 键退出历史记录视图...");
+        terminal.writer().println("Press 'q' or ESC key to exit history view...");
         terminal.flush();
 
         // Save original terminal attributes
@@ -524,7 +523,7 @@ public class InteractiveService {
     private void openLastResponseInBrowser() {
         synchronized (entries) {
             if (entries.isEmpty()) {
-                System.out.println(AnsiColors.promptInfo("还没有任何问答记录。"));
+                System.out.println(AnsiColors.promptInfo("No Q&A records yet."));
                 return;
             }
 
@@ -532,7 +531,7 @@ public class InteractiveService {
             Entry lastEntry = entries.get(entries.size() - 1);
             
             if (lastEntry.answer == null || lastEntry.answer.isEmpty()) {
-                System.out.println(AnsiColors.promptInfo("最后一个问题的回答尚未生成。"));
+                System.out.println(AnsiColors.promptInfo("The answer to the last question has not been generated yet."));
                 return;
             }
 
@@ -572,9 +571,9 @@ public class InteractiveService {
                 }
                 
                 process.waitFor();
-                System.out.println(AnsiColors.promptInfo("已在浏览器中打开回答：") + filePath.toAbsolutePath());
+                System.out.println(AnsiColors.promptInfo("Answer opened in browser: ") + filePath.toAbsolutePath());
             } catch (Exception e) {
-                System.err.println(AnsiColors.promptError("打开浏览器失败：") + e.getMessage());
+                System.err.println(AnsiColors.promptError("Failed to open browser: ") + e.getMessage());
             }
         }
     }

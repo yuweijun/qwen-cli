@@ -6,6 +6,7 @@ import com.example.askquery.model.HistoryEntry;
 import com.example.askquery.util.BatRenderer;
 import com.example.askquery.util.MarkdownRenderer;
 import com.example.askquery.util.AnsiColors;
+import com.example.askquery.util.FilenameUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
 import org.jline.reader.EndOfFileException;
@@ -539,7 +540,7 @@ public class InteractiveService {
                 // Get current date in yyyy-MM-dd format
                 String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-                String sanitized = getSanitizedFileName(lastEntry.question);
+                String sanitized = FilenameUtils.sanitizeFilename(lastEntry.question);
 
                 // Create the filename with .html extension for styled content
                 String fileName = date + "_" + sanitized + ".html";
@@ -578,20 +579,13 @@ public class InteractiveService {
         }
     }
 
-    @NotNull
-    private String getSanitizedFileName(String lastEntry) {
-        // Extract first 35 characters of the question and sanitize for filename
-        String first35Chars = lastEntry.length() > 35 ? lastEntry.substring(0, 35) : lastEntry;
-        return first35Chars.replaceAll("[^\\u4e00-\\u9fa5a-zA-Z\\d]", "_");
-    }
-
     private void saveQuestionToFile(String question, String response) {
         try {
             // Get current date in yyyy-MM-dd format
             String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
             // Extract first 35 characters of the question and sanitize for filename
-            String sanitized = getSanitizedFileName(question);
+            String sanitized = FilenameUtils.sanitizeFilename(question);
 
             // Create the filename with .html extension for styled content
             String fileName = date + "_" + sanitized + ".html";

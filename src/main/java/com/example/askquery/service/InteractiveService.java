@@ -37,6 +37,7 @@ public class InteractiveService {
     private final DashscopeProperties dashProps;
     private final DashscopeClient client;
     private final HistoryManager historyManager;
+    private final SearchHistoryService searchHistoryService;
 
     private final Deque<Map<String, String>> convo = new ArrayDeque<>();
     private final List<Entry> entries = new ArrayList<>();
@@ -54,6 +55,9 @@ public class InteractiveService {
 
         // Initialize bat command path from configuration
         BatRenderer.setBatCommand(appProps.getBatCommand());
+
+        // Initialize search history service
+        this.searchHistoryService = new SearchHistoryService(this.historyManager, this.appProps);
 
         // Load existing history entries
         loadHistoryEntries();
@@ -173,8 +177,8 @@ public class InteractiveService {
             submitAndMaybeWait(initialQuery, jsonHistPath, reader, exits);
         }
 
-        String prompt = "\n========================================================" +
-                        "\n请输入你的问题（或输入 exit/quit 退出；h 查看历史记录）： ";
+        String prompt = "\n\u001B[32m========================================================\u001B[0m" +
+                        "\n\u001B[32m请输入你的问题（或输入 exit/quit 退出；h 查看历史记录；s 搜索历史记录）： \u001B[0m";
         while (true) {
             String line;
             try {
@@ -195,7 +199,12 @@ public class InteractiveService {
             if (s.isEmpty()) continue;
 
             if (s.equalsIgnoreCase("h") || s.equalsIgnoreCase(":h") || s.equalsIgnoreCase(":history")) {
-                showHistory(terminal);
+                searchHistoryService.displayLatestHistory();
+                continue;
+            }
+
+            if (s.equalsIgnoreCase("s") || s.equalsIgnoreCase(":s") || s.equalsIgnoreCase(":search")) {
+                searchHistoryService.handleSearchInteraction();
                 continue;
             }
 
@@ -205,7 +214,7 @@ public class InteractiveService {
             }
 
             // Add to JLine history as well as file
-            System.out.println("========================================================\n");
+            System.out.println("\u001B[32m========================================================\u001B[0m\n");
             reader.getHistory().add(s);
             appendHistoryUnique(jlineHistPath, s);
             submitAndMaybeWait(s, jsonHistPath, reader, exits);

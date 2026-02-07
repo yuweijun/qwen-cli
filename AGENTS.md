@@ -14,6 +14,9 @@ Qwen CLI is a Java-based interactive command-line application that provides acce
 - **Imports**: Use static imports when appropriate, avoid wildcard imports (*)
 - **POJO methods**: DO NOT use one-line style for setter/getter methods
 - **Class properties**: Add blank line after every property in Java classes
+- **Build tool**: Use Gradle as the build tool for Java projects
+- **Web framework**: Use Spring Boot 3 latest version for web Java projects
+- **Testing framework**: Use JUnit 5 and Mockito to generate test cases
 
 ## Build and Run Commands
 
@@ -36,6 +39,9 @@ java -Dapp.useBatRendering=true -Dapp.batTheme="Monokai Extended" -cp build/libs
 
 # With custom bat command path
 java -Dapp.batCommand="/opt/homebrew/bin/bat" -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
+
+# With custom history display count
+java -Dapp.historyDisplayCount=50 -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
 
 # With custom configuration
 java -Dapp.contextLength=10 -Ddashscope.model=qwen-max -cp build/libs/qwen_cli-0.1.0.jar com.example.askquery.Main
@@ -91,6 +97,7 @@ Configuration is loaded via system properties with fallback to defaults:
 - `app.useBatRendering`: Enable bat markdown rendering (default: true)
 - `app.batTheme`: Theme for bat rendering (default: "Monokai Extended")
 - `app.batCommand`: Path to bat command (default: "/usr/local/bin/bat")
+- `app.historyDisplayCount`: Number of latest history items to display per page (default: 15)
 
 **DashScope Properties** (`config/DashscopeProperties.java`)
 - `dashscope.api.key`: API key (falls back to `DASHSCOPE_API_KEY` env var)

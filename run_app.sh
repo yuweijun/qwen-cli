@@ -12,6 +12,8 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGS_DIR="$PROJECT_ROOT/logs"
 JAR_FILE="$PROJECT_ROOT/build/libs/qwen-cli-0.1.0.jar"
 
+./gradlew clean build
+
 # Create logs directory if it doesn't exist
 mkdir -p "$LOGS_DIR"
 

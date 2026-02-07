@@ -10,6 +10,7 @@ public class AppProperties {
     private boolean useBatRendering = true;
     private String batTheme = "Monokai Extended";
     private String batCommand = "/usr/local/bin/bat";
+    private int historyDisplayCount = 15;
 
     public String getHistoryFile() {
         return historyFile;
@@ -81,5 +82,13 @@ public class AppProperties {
 
     public void setBatCommand(String batCommand) {
         this.batCommand = batCommand;
+    }
+
+    public int getHistoryDisplayCount() {
+        return historyDisplayCount;
+    }
+
+    public void setHistoryDisplayCount(int historyDisplayCount) {
+        this.historyDisplayCount = historyDisplayCount;
     }
 }

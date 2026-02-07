@@ -11,7 +11,7 @@ Qwen CLI is a Java-based interactive command-line application that provides acce
 - **Java code line wrapping**: Use 120 characters maximum line length
 - **Indentation**: 4 spaces for Java code
 - **Naming conventions**: Follow standard Java camelCase and PascalCase conventions
-- **Imports**: Use static imports when appropriate, avoid wildcard imports (*)
+- **Imports**: Use static imports when appropriate, avoid wildcard imports (*). **Prefer using import statements over fully qualified package names** - use `import com.example.ClassName` instead of `com.example.ClassName` throughout the code
 - **POJO methods**: DO NOT use one-line style for setter/getter methods
 - **Class properties**: Add blank line after every property in Java classes
 - **Build tool**: Use Gradle as the build tool for Java projects

@@ -4,11 +4,18 @@ import com.example.askquery.config.AppProperties;
 import com.example.askquery.model.HistoryEntry;
 import com.example.askquery.util.BatRenderer;
 import com.example.askquery.util.AnsiColors;
+import com.example.askquery.util.FilenameUtils;
+import com.example.askquery.util.MarkdownRenderer;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Service class to handle search functionality for history entries
@@ -18,6 +25,8 @@ public class SearchHistoryService {
     private final HistoryManager historyManager;
     private final AppProperties appProps;
     private final Scanner scanner;
+    private HistoryEntry selectedEntry; // Track the currently selected entry
+    private HistoryEntry lastSelectedSearchResult; // Track the last selected search result
     
     public SearchHistoryService(HistoryManager historyManager, AppProperties appProps) {
         this.historyManager = historyManager;
@@ -77,7 +86,7 @@ public class SearchHistoryService {
         }
         System.out.println(AnsiColors.promptDivider("===================================="));
         System.out.print(AnsiColors.promptText("Enter number to view details, ") + 
-                       AnsiColors.promptNavigation("'q'") + 
+                       AnsiColors.promptNavigation("'q'") +
                        AnsiColors.promptText(" to quit, or press Enter to search again: "));
     }
     
@@ -129,8 +138,9 @@ public class SearchHistoryService {
             
             int selectedIndex = Integer.parseInt(input);
             if (selectedIndex >= 1 && selectedIndex <= results.size()) {
-                HistoryEntry selectedEntry = results.get(selectedIndex - 1);
-                displayHistoryEntry(selectedEntry);
+                this.selectedEntry = results.get(selectedIndex - 1);
+                this.lastSelectedSearchResult = results.get(selectedIndex - 1); // Store for 'o' key
+                displayHistoryEntry(this.selectedEntry);
                 return true; // Continue search mode after viewing
             } else {
                 System.out.println(AnsiColors.promptError("Invalid selection. ") + 
@@ -150,8 +160,16 @@ public class SearchHistoryService {
     
     /**
      * Display a history entry with bat rendering if available
-     * @param entry HistoryEntry to display
      */
+    public HistoryEntry getLatestEntry() {
+        List<HistoryEntry> allEntries = historyManager.loadHistory();
+        if (allEntries.isEmpty()) {
+            return null;
+        }
+        // Return the most recent entry (last in the list)
+        return allEntries.get(allEntries.size() - 1);
+    }
+    
     private void displayHistoryEntry(HistoryEntry entry) {
         System.out.println("\n" + AnsiColors.promptSectionHeader("========== History Entry =========="));
         System.out.println(AnsiColors.promptText("Question: ") + entry.getQuestion());
@@ -173,8 +191,54 @@ public class SearchHistoryService {
         }
         
         System.out.println(AnsiColors.promptDivider("==================================="));
-        System.out.println(AnsiColors.promptText("Press Enter to return to continue..."));
-        scanner.nextLine();
+        System.out.print(AnsiColors.promptText("Press Enter to continue or press 'o' to open it in browser: "));
+        
+        String input = scanner.nextLine().trim();
+        if (input.equalsIgnoreCase("o")) {
+            // Open the current entry in browser
+            try {
+                // Use the same HTML generation logic
+                LocalDate date = LocalDate.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String dateString = date.format(formatter);
+                
+                String sanitized = FilenameUtils.sanitizeFilename(entry.getQuestion());
+                
+                // Create the filename with .html extension for styled content
+                String fileName = dateString + "_" + sanitized + ".html";
+                
+                // Create the content with Monokai-themed markdown
+                String content = MarkdownRenderer.createMonokaiStyledMarkdown(
+                    entry.getQuestion(), entry.getAnswer());
+                
+                // Write to file in questions directory
+                Path questionsDir = Paths.get("questions");
+                if (!Files.exists(questionsDir)) {
+                    Files.createDirectories(questionsDir);
+                }
+                
+                Path filePath = questionsDir.resolve(fileName);
+                Files.write(filePath, content.getBytes());
+                
+                // Open in browser
+                String os = System.getProperty("os.name").toLowerCase();
+                Process process;
+                
+                if (os.contains("mac")) {
+                    process = Runtime.getRuntime().exec(new String[]{"open", filePath.toString()});
+                } else if (os.contains("win")) {
+                    process = Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", "\"\"", filePath.toString()});
+                } else {
+                    // Linux and other Unix-like systems
+                    process = Runtime.getRuntime().exec(new String[]{"xdg-open", filePath.toString()});
+                }
+                
+                process.waitFor();
+                System.out.println(AnsiColors.promptInfo("已在浏览器中打开回答：") + filePath.toAbsolutePath());
+            } catch (Exception e) {
+                System.err.println(AnsiColors.promptError("打开浏览器失败：") + e.getMessage());
+            }
+        }
     }
     
     /**

@@ -1,10 +1,6 @@
 package com.example.askquery.service;
 
-import org.jline.reader.History;
 import org.jline.reader.impl.history.DefaultHistory;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 /**
  * Custom history implementation that filters out command inputs

@@ -18,6 +18,25 @@ Qwen CLI is a Java-based interactive command-line application that provides acce
 - **Web framework**: Use Spring Boot 3 latest version for web Java projects
 - **Testing framework**: Use JUnit 5 and Mockito to generate test cases
 
+### Git Commit Guidelines
+
+**Do not add AI attribution** to commit messages such as:
+- `co-authored-by: AI Assistant`
+- `Generated with [AI Tool Name]`
+- `AI-assisted commit`
+- Any other AI-generated attribution metadata
+
+Keep commit messages focused on describing the actual changes made to the codebase.
+
+### Import Management
+
+**Always remove unused imports** after making changes to classes. This includes:
+- Imports that were used previously but are no longer needed
+- Auto-imported classes that aren't actually used in the code
+- Wildcard imports that should be replaced with specific imports
+
+Run `./gradlew build` to verify all imports are properly used and there are no compilation warnings about unused imports.
+
 ### Test Method Naming Convention
 
 Follow the BDD (Behavior-Driven Development) style for JUnit test method names using the pattern:

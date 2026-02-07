@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 public class InteractiveServiceHtmlTest {
 
     @Test
-    public void testHtmlGenerationContainsMonokaiStyling() throws Exception {
+    public void given_markdown_content_when_create_monokai_styled_html_then_contains_proper_styling() throws Exception {
         // Given
         String question = "What is Java?";
         String response = "**Java** is a programming language with ```code examples``` and *italic text*.";
@@ -37,7 +37,7 @@ public class InteractiveServiceHtmlTest {
     }
 
     @Test
-    public void testEscapeHtmlMethod() throws Exception {
+    public void given_dangerous_html_input_when_escape_html_then_return_escaped_output() throws Exception {
         // Given
         String dangerousInput = "<script>alert('xss')</script>";
         

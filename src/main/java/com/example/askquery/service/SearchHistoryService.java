@@ -3,6 +3,7 @@ package com.example.askquery.service;
 import com.example.askquery.config.AppProperties;
 import com.example.askquery.model.HistoryEntry;
 import com.example.askquery.util.BatRenderer;
+import com.example.askquery.util.AnsiColors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,27 +66,32 @@ public class SearchHistoryService {
      */
     public void displaySearchResults(List<HistoryEntry> results) {
         if (results.isEmpty()) {
-            System.out.println("No matching history entries found.");
+            System.out.println(AnsiColors.promptInfo("No matching history entries found."));
             return;
         }
         
-        System.out.println("\n========== Search Results ==========");
+        System.out.println("\n" + AnsiColors.promptSectionHeader("========== Search Results =========="));
         for (int i = 0; i < results.size(); i++) {
             HistoryEntry entry = results.get(i);
-            System.out.printf("[%d] %s%n", i + 1, entry.getQuestion());
+            System.out.printf("%s %s%n", AnsiColors.colorizeIndex(i + 1), entry.getQuestion());
         }
-        System.out.println("====================================");
-        System.out.print("Enter number to view details, 'q' to quit, or press Enter to search again: ");
+        System.out.println(AnsiColors.promptDivider("===================================="));
+        System.out.print(AnsiColors.promptText("Enter number to view details, ") + 
+                       AnsiColors.promptNavigation("'q'") + 
+                       AnsiColors.promptText(" to quit, or press Enter to search again: "));
     }
     
     /**
      * Handle the search interaction loop with consistent navigation controls
      */
     public void handleSearchInteraction() {
-        System.out.println("\n=== Search History Mode ===");
+        System.out.println("\n" + AnsiColors.promptModeHeader("=== Search History Mode ==="));
         
         while (true) {
-            System.out.print("Enter search keywords (or 'q' to quit, press Enter to refresh): ");
+            System.out.print(AnsiColors.promptText("Enter search keywords ") + 
+                           AnsiColors.promptText("(or ") + 
+                           AnsiColors.promptNavigation("'q'") + 
+                           AnsiColors.promptText(" to quit, press Enter to refresh): "));
             
             String keywords = scanner.nextLine().trim();
             
@@ -127,11 +133,17 @@ public class SearchHistoryService {
                 displayHistoryEntry(selectedEntry);
                 return true; // Continue search mode after viewing
             } else {
-                System.out.println("Invalid selection. Please enter a number between 1 and " + results.size() + ", 'q' to quit, or press Enter to search again.");
+                System.out.println(AnsiColors.promptError("Invalid selection. ") + 
+                                 AnsiColors.promptText("Please enter a number between 1 and " + results.size() + ", ") +
+                                 AnsiColors.promptNavigation("'q'") + 
+                                 AnsiColors.promptText(" to quit, or press Enter to search again."));
                 return true; // Continue search mode
             }
         } catch (NumberFormatException e) {
-            System.out.println("Invalid input. Please enter a valid number, 'q' to quit, or press Enter to search again.");
+            System.out.println(AnsiColors.promptError("Invalid input. ") + 
+                             AnsiColors.promptText("Please enter a valid number, ") +
+                             AnsiColors.promptNavigation("'q'") + 
+                             AnsiColors.promptText(" to quit, or press Enter to search again."));
             return true; // Continue search mode
         }
     }
@@ -141,12 +153,12 @@ public class SearchHistoryService {
      * @param entry HistoryEntry to display
      */
     private void displayHistoryEntry(HistoryEntry entry) {
-        System.out.println("\n========== History Entry ==========");
-        System.out.println("Question: " + entry.getQuestion());
-        System.out.println("-----------------------------------");
+        System.out.println("\n" + AnsiColors.promptSectionHeader("========== History Entry =========="));
+        System.out.println(AnsiColors.promptText("Question: ") + entry.getQuestion());
+        System.out.println(AnsiColors.promptDivider("-----------------------------------"));
         
         if (entry.getAnswer() != null && !entry.getAnswer().isEmpty()) {
-            System.out.println("Answer:");
+            System.out.println(AnsiColors.promptText("Answer:"));
             // Use bat rendering if available and configured
             if (BatRenderer.isBatAvailable()) {
                 if (!BatRenderer.renderToTerminal(entry.getAnswer(), "Monokai Extended")) {
@@ -157,11 +169,11 @@ public class SearchHistoryService {
                 System.out.println(entry.getAnswer());
             }
         } else {
-            System.out.println("Answer: (No answer available)");
+            System.out.println(AnsiColors.promptText("Answer: ") + AnsiColors.promptInfo("(No answer available)"));
         }
         
-        System.out.println("===================================");
-        System.out.println("Press Enter to return to continue...");
+        System.out.println(AnsiColors.promptDivider("==================================="));
+        System.out.println(AnsiColors.promptText("Press Enter to return to continue..."));
         scanner.nextLine();
     }
     
@@ -170,7 +182,7 @@ public class SearchHistoryService {
      * Number of entries displayed is controlled by appProps.getHistoryDisplayCount()
      */
     public void displayLatestHistory() {
-        System.out.println("\n=== History Mode ===");
+        System.out.println("\n" + AnsiColors.promptModeHeader("=== History Mode ==="));
         
         int currentPage = 0;
         int pageSize = appProps.getHistoryDisplayCount();
@@ -179,8 +191,10 @@ public class SearchHistoryService {
             List<HistoryEntry> allEntries = historyManager.loadHistory();
             
             if (allEntries.isEmpty()) {
-                System.out.println("No history entries found.");
-                System.out.println("Press Enter to refresh or 'q' to quit: ");
+                System.out.println(AnsiColors.promptInfo("No history entries found."));
+                System.out.println(AnsiColors.promptText("Press Enter to refresh or ") + 
+                                 AnsiColors.promptNavigation("'q'") + 
+                                 AnsiColors.promptText(" to quit: "));
                 String input = scanner.nextLine().trim();
                 if (input.equalsIgnoreCase("q")) {
                     break;
@@ -199,28 +213,29 @@ public class SearchHistoryService {
                 Math.max(0, allEntries.size() - startIndex)
             );
             
-            System.out.println("\n========== Latest History ==========");
-            System.out.printf("Page %d of %d (Total: %d entries)%n", currentPage + 1, totalPages, allEntries.size());
-            System.out.println("====================================");
+            System.out.println("\n" + AnsiColors.promptSectionHeader("========== Latest History =========="));
+            System.out.printf(AnsiColors.promptInfo("Page %d of %d ") + AnsiColors.promptText("(Total: %d entries)%n"), 
+                            currentPage + 1, totalPages, allEntries.size());
+            System.out.println(AnsiColors.promptDivider("===================================="));
             
             // Display entries with 1-based indexing within current page
             for (int i = 0; i < currentPageEntries.size(); i++) {
                 HistoryEntry entry = currentPageEntries.get(i);
                 int displayIndex = i + 1; // 1-based index within current page
-                System.out.printf("[%d] %s%n", displayIndex, entry.getQuestion());
+                System.out.printf("%s %s%n", AnsiColors.colorizeIndex(displayIndex), entry.getQuestion());
             }
             
             System.out.println("====================================");
             
             // Show navigation options
-            System.out.print("Enter number to view details");
+            System.out.print(AnsiColors.promptText("Enter number to view details"));
             if (currentPage > 0) {
-                System.out.print(", 'p' for previous page");
+                System.out.print(AnsiColors.promptText(", ") + AnsiColors.promptNavigation("'p'") + AnsiColors.promptText(" for previous page"));
             }
             if (currentPage < totalPages - 1) {
-                System.out.print(", 'n' for next page");
+                System.out.print(AnsiColors.promptText(", ") + AnsiColors.promptNavigation("'n'") + AnsiColors.promptText(" for next page"));
             }
-            System.out.print(", 'q' to quit, or press Enter to refresh: ");
+            System.out.print(AnsiColors.promptText(", ") + AnsiColors.promptNavigation("'q'") + AnsiColors.promptText(" to quit, or press Enter to refresh: "));
             
             String input = scanner.nextLine().trim();
             
@@ -243,10 +258,18 @@ public class SearchHistoryService {
                         HistoryEntry selectedEntry = currentPageEntries.get(selectedIndex - 1);
                         displayHistoryEntry(selectedEntry);
                     } else {
-                        System.out.println("Invalid selection. Please enter a number between 1 and " + currentPageEntries.size());
+                        System.out.println(AnsiColors.promptError("Invalid selection. ") + 
+                                         AnsiColors.promptText("Please enter a number between 1 and " + currentPageEntries.size()));
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("Invalid input. Please enter a valid number, 'n' for next, 'p' for previous, 'q' to quit, or press Enter to refresh.");
+                    System.out.println(AnsiColors.promptError("Invalid input. ") + 
+                                     AnsiColors.promptText("Please enter a valid number, ") +
+                                     AnsiColors.promptNavigation("'n'") + 
+                                     AnsiColors.promptText(" for next, ") +
+                                     AnsiColors.promptNavigation("'p'") + 
+                                     AnsiColors.promptText(" for previous, ") +
+                                     AnsiColors.promptNavigation("'q'") + 
+                                     AnsiColors.promptText(" to quit, or press Enter to refresh."));
                 }
             }
         }

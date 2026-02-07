@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InteractiveServiceUnitTest {
 
     @Test
-    public void testConstructorWithValidConfiguration() {
+    public void given_valid_configuration_when_construct_then_create_service_successfully() {
         // Given
         AppProperties appProps = createValidAppProperties();
         DashscopeProperties dashProps = createValidDashscopeProperties();
@@ -26,7 +26,7 @@ public class InteractiveServiceUnitTest {
     }
 
     @Test
-    public void testConstructorHandlesMinimalConfiguration() {
+    public void given_minimal_configuration_when_construct_then_handle_gracefully() {
         // Given - minimal valid configuration
         AppProperties appProps = new AppProperties();
         appProps.setHistoryFile("/tmp/minimal_test_history.json");
@@ -42,7 +42,7 @@ public class InteractiveServiceUnitTest {
     }
 
     @Test
-    public void testServiceCreationWithDifferentContextLengths() {
+    public void given_different_context_lengths_when_create_services_then_handle_appropriately() {
         // Given
         AppProperties appProps = createValidAppProperties();
         DashscopeProperties dashProps = createValidDashscopeProperties();
@@ -63,7 +63,7 @@ public class InteractiveServiceUnitTest {
     }
 
     @Test
-    public void testParallelModeConfiguration() {
+    public void given_parallel_mode_configured_when_construct_then_setup_correctly() {
         // Given
         AppProperties appProps = createValidAppProperties();
         appProps.setParallel(true);
@@ -80,7 +80,7 @@ public class InteractiveServiceUnitTest {
     }
 
     @Test
-    public void testMultipleInstancesCreation() {
+    public void given_multiple_constructions_when_create_services_then_create_separate_instances() {
         // Given
         AppProperties appProps = createValidAppProperties();
         DashscopeProperties dashProps = createValidDashscopeProperties();

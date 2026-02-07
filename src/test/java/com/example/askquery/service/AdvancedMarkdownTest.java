@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AdvancedMarkdownTest {
 
     @Test
-    public void testTableConversion() {
+    public void given_markdown_table_when_convert_to_html_then_generate_proper_table_structure() {
         // Given
         String markdownTable = """
             | Header 1 | Header 2 |
@@ -31,7 +31,7 @@ public class AdvancedMarkdownTest {
     }
 
     @Test
-    public void testAutolinkDetection() {
+    public void given_url_in_markdown_when_convert_to_html_then_create_automatic_links() {
         // Given
         String markdownWithUrls = "Visit https://example.com for more information.";
         
@@ -44,7 +44,7 @@ public class AdvancedMarkdownTest {
     }
 
     @Test
-    public void testComplexMarkdown() {
+    public void given_complex_markdown_content_when_convert_to_html_then_handle_all_elements() {
         // Given
         String complexMarkdown = """
             # Main Title

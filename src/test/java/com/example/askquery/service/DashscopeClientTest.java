@@ -11,7 +11,7 @@ import java.util.Map;
 public class DashscopeClientTest {
 
     @Test
-    public void testSendMessagesNotNull() {
+    public void given_valid_messages_when_send_messages_then_return_non_null_result() {
         // Given
         DashscopeProperties props = new DashscopeProperties();
         props.getApi().setKey(System.getenv("DASHSCOPE_API_KEY")); // Use actual properties
@@ -30,7 +30,7 @@ public class DashscopeClientTest {
     }
 
     @Test
-    public void testExtractTextFromNull() {
+    public void given_null_json_node_when_extract_text_then_return_empty_string() {
         // Given
         DashscopeProperties props = new DashscopeProperties();
         props.getApi().setKey(System.getenv("DASHSCOPE_API_KEY")); // Use actual properties

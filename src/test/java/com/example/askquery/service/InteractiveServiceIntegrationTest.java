@@ -57,7 +57,7 @@ public class InteractiveServiceIntegrationTest {
     }
 
     @Test
-    public void testServiceCreationAndBasicFunctionality() {
+    public void given_valid_dependencies_when_create_service_then_work_correctly() {
         // Test that the service can be created and basic operations work
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         assertNotNull(service, "Service should be created successfully");
@@ -67,7 +67,7 @@ public class InteractiveServiceIntegrationTest {
     }
 
     @Test
-    public void testServiceHandlesDifferentContextLengths() {
+    public void given_various_context_lengths_when_create_service_then_handle_appropriately() {
         // Test various context length configurations
         int[] contextLengths = {0, 1, 5, 10, -1};
         
@@ -79,7 +79,7 @@ public class InteractiveServiceIntegrationTest {
     }
 
     @Test
-    public void testServiceHandlesParallelConfigurations() {
+    public void given_parallel_configurations_when_create_service_then_handle_appropriately() {
         // Test parallel mode configurations
         boolean[] parallelModes = {true, false};
         int[] concurrencies = {1, 2, 5};
@@ -96,7 +96,7 @@ public class InteractiveServiceIntegrationTest {
     }
 
     @Test
-    public void testServiceHandlesVariousExitCommands() {
+    public void given_various_exit_commands_when_create_service_then_handle_appropriately() {
         // Test different exit command configurations
         String[] exitCommandSets = {
             "exit",
@@ -114,7 +114,7 @@ public class InteractiveServiceIntegrationTest {
     }
 
     @Test
-    public void testServiceHandlesEdgeCaseConfigurations() {
+    public void given_edge_case_configurations_when_create_service_then_handle_gracefully() {
         // Test edge cases and boundary conditions
         InteractiveService service;
         
@@ -135,7 +135,7 @@ public class InteractiveServiceIntegrationTest {
     }
 
     @Test
-    public void testServiceCreationPerformance() {
+    public void given_multiple_creations_when_measure_performance_then_meet_expectations() {
         // Basic performance test - service creation should be fast
         long startTime = System.currentTimeMillis();
         
@@ -153,7 +153,7 @@ public class InteractiveServiceIntegrationTest {
     }
 
     @Test
-    public void testServiceStateIndependence() {
+    public void given_multiple_services_when_check_state_then_maintain_independence() {
         // Test that multiple service instances are independent
         InteractiveService service1 = new InteractiveService(appProps, dashProps, client);
         InteractiveService service2 = new InteractiveService(appProps, dashProps, client);

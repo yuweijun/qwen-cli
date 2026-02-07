@@ -27,7 +27,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testConstructorCreatesServiceSuccessfully() {
+    public void given_valid_configuration_when_construct_then_create_service_successfully() {
         // When
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
 
@@ -36,7 +36,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testConstructorHandlesNullHistoryFile() {
+    public void given_null_history_file_when_construct_then_handle_appropriately() {
         // Given
         appProps.setHistoryFile(null);
 
@@ -47,7 +47,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testConstructorWithParallelMode() {
+    public void given_parallel_mode_enabled_when_construct_then_enable_parallel_processing() {
         // Given
         appProps.setParallel(true);
         appProps.setConcurrency(4);
@@ -60,7 +60,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testConstructorWithZeroContextLength() {
+    public void given_zero_context_length_when_construct_then_handle_gracefully() {
         // Given
         appProps.setContextLength(0);
 
@@ -72,7 +72,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testConstructorWithNegativeContextLength() {
+    public void given_negative_context_length_when_construct_then_handle_gracefully() {
         // Given
         appProps.setContextLength(-1);
 
@@ -84,7 +84,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testConstructorWithEmptyExitCommands() {
+    public void given_empty_exit_commands_when_construct_then_handle_gracefully() {
         // Given
         appProps.setExitCommands("");
 
@@ -96,7 +96,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testConstructorWithNullSystemMessage() {
+    public void given_null_system_message_when_construct_then_handle_gracefully() {
         // Given
         appProps.setSystemMessage(null);
 
@@ -108,7 +108,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testMultipleServicesCanBeCreated() {
+    public void given_multiple_constructions_when_create_services_then_create_separate_instances() {
         // When
         InteractiveService service1 = new InteractiveService(appProps, dashProps, client);
         InteractiveService service2 = new InteractiveService(appProps, dashProps, client);
@@ -120,7 +120,7 @@ public class InteractiveServiceSimpleTest {
     }
 
     @Test
-    public void testServiceCreationWithDifferentConfigurations() {
+    public void given_different_configurations_when_create_services_then_handle_appropriately() {
         // Given different configurations
         AppProperties props1 = createValidAppProperties();
         props1.setContextLength(3);

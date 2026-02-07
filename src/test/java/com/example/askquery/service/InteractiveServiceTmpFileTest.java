@@ -14,7 +14,7 @@ import static org.mockito.Mockito.*;
 public class InteractiveServiceTmpFileTest {
 
     @Test
-    public void testJlineHistoryPathUsesTmpDirectory() throws Exception {
+    public void given_service_creation_when_check_jline_history_path_then_use_tmp_directory() throws Exception {
         // Given
         AppProperties appProps = new AppProperties();
         appProps.setHistoryFile("/tmp/test_history.json");

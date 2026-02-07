@@ -16,7 +16,7 @@ public class InteractiveServiceSearchTest {
     Path tempDir;
 
     @Test
-    public void testInteractiveServiceInitializesSearchHistoryService() throws Exception {
+    public void given_app_properties_when_construct_then_initialize_search_history_service() throws Exception {
         // Given
         AppProperties appProps = new AppProperties();
         appProps.setHistoryFile(tempDir.resolve("test_history.json").toString());
@@ -37,7 +37,7 @@ public class InteractiveServiceSearchTest {
     }
 
     @Test
-    public void testSearchCommandRecognition() {
+    public void given_search_commands_when_check_recognition_then_identify_correctly() {
         // This test verifies that the search command handlers are properly set up
         // Since the actual command handling requires user input simulation,
         // we'll test the command recognition logic

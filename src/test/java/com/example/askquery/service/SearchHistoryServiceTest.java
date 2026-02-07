@@ -26,7 +26,7 @@ public class SearchHistoryServiceTest {
     }
 
     @Test
-    public void testSearchHistoryWithMatchingKeywords() {
+    public void given_matching_keywords_when_search_history_then_return_matching_entries() {
         // Given
         List<HistoryEntry> mockEntries = Arrays.asList(
             new HistoryEntry("How to use Java streams?", "Java streams provide functional programming capabilities..."),
@@ -47,7 +47,7 @@ public class SearchHistoryServiceTest {
     }
 
     @Test
-    public void testSearchHistoryWithMultipleKeywords() {
+    public void given_multiple_keywords_when_search_history_then_return_matching_entries() {
         // Given
         List<HistoryEntry> mockEntries = Arrays.asList(
             new HistoryEntry("How to use Java streams?", "Java streams provide functional programming capabilities..."),
@@ -67,7 +67,7 @@ public class SearchHistoryServiceTest {
     }
 
     @Test
-    public void testSearchHistoryWithNoMatches() {
+    public void given_no_matching_entries_when_search_history_then_return_empty_list() {
         // Given
         List<HistoryEntry> mockEntries = Arrays.asList(
             new HistoryEntry("How to use Python?", "Python is a programming language..."),
@@ -85,7 +85,7 @@ public class SearchHistoryServiceTest {
     }
 
     @Test
-    public void testSearchHistoryWithEmptyKeywords() {
+    public void given_empty_keywords_when_search_history_then_return_empty_list() {
         // Given
         List<HistoryEntry> mockEntries = Arrays.asList(
             new HistoryEntry("How to use Java?", "Java is a programming language...")
@@ -106,7 +106,7 @@ public class SearchHistoryServiceTest {
     }
 
     @Test
-    public void testSearchHistoryReturnsTop10Results() {
+    public void given_more_than_10_matching_entries_when_search_history_then_return_top_10() {
         // Given
         HistoryEntry[] entries = new HistoryEntry[15];
         for (int i = 0; i < 15; i++) {
@@ -124,7 +124,7 @@ public class SearchHistoryServiceTest {
     }
 
     @Test
-    public void testMatchesKeywords() {
+    public void given_case_insensitive_keywords_when_search_then_match_correctly() {
         // This tests the private method indirectly through the public search method
         List<HistoryEntry> mockEntries = Arrays.asList(
             new HistoryEntry("Java programming tutorial", "Learn Java programming..."),

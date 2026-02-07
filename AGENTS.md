@@ -18,6 +18,21 @@ Qwen CLI is a Java-based interactive command-line application that provides acce
 - **Web framework**: Use Spring Boot 3 latest version for web Java projects
 - **Testing framework**: Use JUnit 5 and Mockito to generate test cases
 
+### Test Method Naming Convention
+
+Follow the BDD (Behavior-Driven Development) style for JUnit test method names using the pattern:
+`given_[conditions]_when_[action]_then_[expected_outcome]`
+
+Examples:
+- `given_valid_input_when_process_data_then_return_expected_result`
+- `given_null_parameter_when_execute_method_then_throw_exception`
+- `given_empty_list_when_find_items_then_return_empty_result`
+
+This naming convention makes tests self-documenting and clearly expresses:
+- **Given**: The preconditions or setup
+- **When**: The action being tested
+- **Then**: The expected outcome or behavior
+
 ## Build and Run Commands
 
 ### Building

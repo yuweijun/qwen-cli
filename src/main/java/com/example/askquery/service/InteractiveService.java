@@ -5,6 +5,7 @@ import com.example.askquery.config.DashscopeProperties;
 import com.example.askquery.model.HistoryEntry;
 import com.example.askquery.util.BatRenderer;
 import com.example.askquery.util.MarkdownRenderer;
+import com.example.askquery.util.AnsiColors;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -12,7 +13,6 @@ import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.reader.impl.LineReaderImpl;
-import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -43,6 +43,7 @@ public class InteractiveService {
     private final List<Entry> entries = new ArrayList<>();
     private final ExecutorService executor;
     private final boolean parallelMode;
+    private final List<String> exits;
 
     public InteractiveService(AppProperties appProps, DashscopeProperties dashProps, DashscopeClient client) {
         this.appProps = appProps;
@@ -58,6 +59,13 @@ public class InteractiveService {
 
         // Initialize search history service
         this.searchHistoryService = new SearchHistoryService(this.historyManager, this.appProps);
+        
+        // Initialize exit commands list
+        this.exits = Arrays.stream(appProps.getExitCommands().split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
 
         // Load existing history entries
         loadHistoryEntries();
@@ -78,8 +86,19 @@ public class InteractiveService {
     }
 
     /**
-     * Loads history entries from the JSON file into the entries list
+     * Check if the input is a command that shouldn't be added to history
+     * @param input the user input to check
+     * @return true if input is a command, false otherwise
      */
+    public boolean isCommand(String input) {
+        return input.equalsIgnoreCase("h") || 
+               input.equalsIgnoreCase(":h") || 
+               input.equalsIgnoreCase(":history") ||
+               input.equalsIgnoreCase("s") || 
+               input.equalsIgnoreCase(":s") || 
+               input.equalsIgnoreCase(":search") ||
+               exits.contains(input.toLowerCase());
+    }
     private void loadHistoryEntries() {
         List<HistoryEntry> historyEntries = historyManager.loadHistory();
         synchronized (entries) {
@@ -107,13 +126,14 @@ public class InteractiveService {
                 .system(true)
                 .build();
 
-        DefaultHistory history = new DefaultHistory();
+        CommandFilteringHistory history = new CommandFilteringHistory(this);
 
         LineReader reader = LineReaderBuilder.builder()
                 .terminal(terminal)
                 .parser(new DefaultParser())
                 .variable(LineReader.HISTORY_FILE, Paths.get(jlineHistPath))
                 .history(history)
+                .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
                 .build();
 
         // Load JLine history from its file
@@ -148,12 +168,6 @@ public class InteractiveService {
             System.err.println("Warning: Could not load JSON history: " + e.getMessage());
         }
 
-        List<String> exits = Arrays.stream(appProps.getExitCommands().split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(String::toLowerCase)
-                .collect(Collectors.toList());
-
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 if (reader instanceof LineReaderImpl) {
@@ -171,23 +185,28 @@ public class InteractiveService {
         }));
 
         if (initialQuery != null && !initialQuery.isBlank()) {
-            // Add to JLine history as well as file
-            reader.getHistory().add(initialQuery);
+            // Add to file (custom history handles JLine history)
             appendHistoryUnique(jlineHistPath, initialQuery);
             submitAndMaybeWait(initialQuery, jsonHistPath, reader, exits);
         }
 
-        String prompt = "\n\u001B[32m========================================================\u001B[0m" +
-                        "\n\u001B[32m请输入你的问题（或输入 exit/quit 退出；h 查看历史记录；s 搜索历史记录）： \u001B[0m";
+        String prompt = "\n" + AnsiColors.promptHeader("请输入你的问题") +
+                        AnsiColors.promptText("（或输入 ") + 
+                        AnsiColors.promptNavigation("exit/quit") + 
+                        AnsiColors.promptText(" 退出；") +
+                        AnsiColors.promptNavigation("'h'") +
+                        AnsiColors.promptText(" 查看历史记录；") +
+                        AnsiColors.promptNavigation("'s'") +
+                        AnsiColors.promptText(" 搜索历史记录）： ");
         while (true) {
             String line;
             try {
                 line = reader.readLine(prompt);
             } catch (UserInterruptException e) {
-                System.out.println("\n已收到 Ctrl+C，退出并等待进行中的请求...");
+                System.out.println("\n" + AnsiColors.promptInfo("已收到 Ctrl+C，") + AnsiColors.promptNavigation("退出并等待进行中的请求..."));
                 break;
             } catch (EndOfFileException e) {
-                System.out.println("\nEOF，退出...");
+                System.out.println("\n" + AnsiColors.promptNavigation("EOF，退出..."));
                 break;
             }
 
@@ -198,24 +217,20 @@ public class InteractiveService {
             String s = line.trim();
             if (s.isEmpty()) continue;
 
-            if (s.equalsIgnoreCase("h") || s.equalsIgnoreCase(":h") || s.equalsIgnoreCase(":history")) {
-                searchHistoryService.displayLatestHistory();
+            // Check if this is a command that shouldn't be added to history
+            if (isCommand(s)) {
+                if (s.equalsIgnoreCase("h") || s.equalsIgnoreCase(":h") || s.equalsIgnoreCase(":history")) {
+                    searchHistoryService.displayLatestHistory();
+                } else if (s.equalsIgnoreCase("s") || s.equalsIgnoreCase(":s") || s.equalsIgnoreCase(":search")) {
+                    searchHistoryService.handleSearchInteraction();
+                } else if (exits.contains(s.toLowerCase())) {
+                    System.out.println(AnsiColors.promptInfo("收到退出命令，") + AnsiColors.promptNavigation("等待进行中的请求并退出..."));
+                    break;
+                }
                 continue;
             }
 
-            if (s.equalsIgnoreCase("s") || s.equalsIgnoreCase(":s") || s.equalsIgnoreCase(":search")) {
-                searchHistoryService.handleSearchInteraction();
-                continue;
-            }
-
-            if (exits.contains(s.toLowerCase())) {
-                System.out.println("收到退出命令，等待进行中的请求并退出...");
-                break;
-            }
-
-            // Add to JLine history as well as file
-            System.out.println("\u001B[32m========================================================\u001B[0m\n");
-            reader.getHistory().add(s);
+            // Add to file (custom history handles JLine history)
             appendHistoryUnique(jlineHistPath, s);
             submitAndMaybeWait(s, jsonHistPath, reader, exits);
         }

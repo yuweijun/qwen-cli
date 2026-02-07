@@ -38,14 +38,14 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testConstructorInitializesCorrectly() {
+    public void given_app_properties_when_construct_service_then_initialize_fields_correctly() {
         // Test that constructor initializes fields properly
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         assertNotNull(service);
     }
 
     @Test
-    public void testLoadHistoryEntriesHandlesEmptyHistory() {
+    public void given_empty_history_when_load_history_entries_then_handle_gracefully() {
         // Test passes if no exception is thrown during construction
         // The loadHistoryEntries is called in constructor
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
@@ -53,7 +53,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testEnsureHistoryFileCreatesFileWhenNotExists() throws Exception {
+    public void given_nonexistent_history_file_when_ensure_history_file_then_create_file() throws Exception {
         // Use reflection to access private method
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         Method method = InteractiveService.class.getDeclaredMethod("ensureHistoryFile", String.class);
@@ -77,7 +77,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testAppendHistoryUniqueDoesNotAddDuplicate() throws Exception {
+    public void given_duplicate_line_when_append_history_unique_then_not_add_duplicate() throws Exception {
         // Use reflection to access private method
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         Method method = InteractiveService.class.getDeclaredMethod("appendHistoryUnique", String.class, String.class);
@@ -103,7 +103,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testAppendHistoryUniqueAddsNewLine() throws Exception {
+    public void given_new_line_when_append_history_unique_then_add_new_line() throws Exception {
         // Use reflection to access private method
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         Method method = InteractiveService.class.getDeclaredMethod("appendHistoryUnique", String.class, String.class);
@@ -132,7 +132,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testSaveQuestionToFileCreatesDirectoryAndFile() throws Exception {
+    public void given_question_and_answer_when_save_question_to_file_then_create_directory_and_file() throws Exception {
         // Use reflection to access private method
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         Method method = InteractiveService.class.getDeclaredMethod("saveQuestionToFile", String.class, String.class);
@@ -189,7 +189,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testBuildMessagesIncludesSystemMessage() throws Exception {
+    public void given_system_message_configured_when_build_messages_then_include_system_message() throws Exception {
         // Use reflection to access private method
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         Method method = InteractiveService.class.getDeclaredMethod("buildMessages", String.class);
@@ -213,7 +213,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testBuildMessagesWithoutSystemMessage() throws Exception {
+    public void given_no_system_message_when_build_messages_then_exclude_system_message() throws Exception {
         // Use reflection to access private method
         InteractiveService service = new InteractiveService(appProps, dashProps, client);
         Method method = InteractiveService.class.getDeclaredMethod("buildMessages", String.class);
@@ -235,7 +235,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testContextLengthManagementThroughConstruction() {
+    public void given_context_length_when_construct_then_manage_context_properly() {
         // Given
         appProps.setContextLength(2);
 
@@ -248,7 +248,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testParallelModeInitialization() {
+    public void given_parallel_mode_configured_when_initialize_then_setup_thread_pool() {
         // Given
         appProps.setParallel(true);
         appProps.setConcurrency(3);
@@ -262,7 +262,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testHistoryFileConfiguration() {
+    public void given_custom_history_file_when_configure_then_use_custom_path() {
         // Given
         String customHistoryFile = "/custom/path/history.json";
         appProps.setHistoryFile(customHistoryFile);
@@ -276,7 +276,7 @@ public class InteractiveServiceTest {
     }
 
     @Test
-    public void testRunWithNullInitialQuery() {
+    public void given_null_initial_query_when_run_then_handle_gracefully() {
         // Test that run method can handle null initial query
         // This is more of an integration test - we'll test the basic setup
         InteractiveService service = new InteractiveService(appProps, dashProps, client);

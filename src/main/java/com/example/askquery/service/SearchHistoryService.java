@@ -191,7 +191,9 @@ public class SearchHistoryService {
         }
         
         System.out.println(AnsiColors.promptDivider("==================================="));
-        System.out.print(AnsiColors.promptText("Press Enter to continue or press 'o' to open it in browser: "));
+        System.out.print(AnsiColors.promptText("Press Enter to continue or press ") + 
+                       AnsiColors.promptNavigation("'o'") + 
+                       AnsiColors.promptText(" to open it in browser: "));
         
         String input = scanner.nextLine().trim();
         if (input.equalsIgnoreCase("o")) {
@@ -234,9 +236,9 @@ public class SearchHistoryService {
                 }
                 
                 process.waitFor();
-                System.out.println(AnsiColors.promptInfo("已在浏览器中打开回答：") + filePath.toAbsolutePath());
+                System.out.println(AnsiColors.promptInfo("Answer opened in browser: ") + filePath.toAbsolutePath());
             } catch (Exception e) {
-                System.err.println(AnsiColors.promptError("打开浏览器失败：") + e.getMessage());
+                System.err.println(AnsiColors.promptError("Failed to open browser: ") + e.getMessage());
             }
         }
     }
